@@ -14,9 +14,12 @@ ENV DEBIAN_FRONTEND=noninteractive \
 # 建立非 root 使用者
 ARG NB_USER=hrc
 ARG NB_UID=1000
-RUN useradd -m -s /bin/bash -u ${NB_UID} ${NB_USER}           \
- && echo "root:root"      | chpasswd                          \
- && echo "${NB_USER}:111111" | chpasswd                       \
+ARG NB_GID=1000
+
+RUN groupadd -g ${NB_GID} ${NB_USER} \
+ && useradd -m -s /bin/bash -u ${NB_UID} -g ${NB_GID} ${NB_USER} \
+ && echo "root:root" | chpasswd \
+ && echo "${NB_USER}:111111" | chpasswd \
  && adduser ${NB_USER} sudo
 
 ENV HOME=/home/${NB_USER}
@@ -107,26 +110,40 @@ RUN apt-get update && \
 ###############################################################################
 ENV LIBREALSENSE_VERSION=2.50.0
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        libssl-dev libglfw3-dev pkg-config && \
+      libssl-dev libglfw3-dev pkg-config udev && \
     git clone -b v${LIBREALSENSE_VERSION} https://github.com/IntelRealSense/librealsense.git && \
     cd librealsense && mkdir build && cd build && \
-    cmake .. -DCMAKE_BUILD_TYPE=Release && \
-    make -j$(nproc) && make install && \
+    cmake .. -DCMAKE_BUILD_TYPE=Release && make -j"$(nproc)" && make install && \
+    ldconfig && \
+    cp ../config/99-realsense-libusb.rules /etc/udev/rules.d/ && \
     cd ../.. && rm -rf librealsense
+
 
 ###############################################################################
 # 環境設定
 ###############################################################################
-RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> ${HOME}/.bashrc && \
-    echo "source /usr/share/colcon_cd/function/colcon_cd.sh" >> ${HOME}/.bashrc && \
-    echo "export _colcon_cd_root=~" >> ${HOME}/.bashrc
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      ros-${ROS_DISTRO}-rmw-cyclonedds-cpp && \
+    rm -rf /var/lib/apt/lists/*
 
-###############################################################################
-# nvidia-docker 2.0
-###############################################################################
-ENV NVIDIA_VISIBLE_DEVICES=all
-ENV NVIDIA_DRIVER_CAPABILITIES=all
+# 建立 hrc 的工作區
+RUN mkdir -p /home/${NB_USER}/ros2_ws/src && chown -R ${NB_USER}:${NB_USER} /home/${NB_USER}/ros2_ws
 
+# 給 root 與 hrc 都加上常用設定
+RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash"        | tee -a /root/.bashrc >/dev/null \
+ && echo "export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp"     | tee -a /root/.bashrc >/dev/null \
+ && echo "export ROS_DOMAIN_ID=\${ROS_DOMAIN_ID:-0}"        | tee -a /root/.bashrc >/dev/null \
+ && echo "alias cb='cd ~/ros2_ws && colcon build --symlink-install && source install/setup.bash'" \
+        | tee -a /root/.bashrc >/dev/null
+
+RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash"        | tee -a /home/${NB_USER}/.bashrc >/dev/null \
+ && echo "export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp"     | tee -a /home/${NB_USER}/.bashrc >/dev/null \
+ && echo "export ROS_DOMAIN_ID=\${ROS_DOMAIN_ID:-0}"        | tee -a /home/${NB_USER}/.bashrc >/dev/null \
+ && echo "alias cb='cd ~/ros2_ws && colcon build --symlink-install && source install/setup.bash'" \
+        | tee -a /home/${NB_USER}/.bashrc >/dev/null \
+ && chown ${NB_USER}:${NB_USER} /home/${NB_USER}/.bashrc
+
+# 之後預設工作目錄就用 hrc 的 ros2_ws
 USER ${NB_USER}
-WORKDIR ${HOME}
+WORKDIR /home/${NB_USER}
 CMD ["/bin/bash"]

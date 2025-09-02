@@ -1,0 +1,2 @@
+# 是否使用 LifecycleNode（多數情況用 false 最穩）
+use_lifecycle_node: false
