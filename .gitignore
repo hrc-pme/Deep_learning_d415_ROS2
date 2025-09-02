@@ -1,0 +1,77 @@
+# -------------------------------
+# Python
+# -------------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+*.ipynb~
+
+# -------------------------------
+# ROS 2 / colcon
+# -------------------------------
+build/
+install/
+log/
+
+# rosbag / dataset (大檔案)
+*.db3
+*.mcap
+*.bag
+*.h5
+*.hdf5
+*.zip
+*.tar
+*.tar.gz
+
+# -------------------------------
+# CMake / catkin / colcon
+# -------------------------------
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# -------------------------------
+# Docker
+# -------------------------------
+*.pid
+*.seed
+*.log
+docker-compose.override.yml
+
+# 不要 commit local image tarballs
+*.tar
+*.img
+*.sif
+
+# -------------------------------
+# VSCode / IDE
+# -------------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# -------------------------------
+# System files
+# -------------------------------
+.DS_Store
+Thumbs.db
+*.tmp
+*~
