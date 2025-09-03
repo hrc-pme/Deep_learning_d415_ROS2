@@ -1,0 +1,3 @@
+[submodule "ros2_ws/src/realsense-ros"]
+	path = ros2_ws/src/realsense-ros
+	url = https://github.com/LesterLiou/realsense-ros
