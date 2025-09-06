@@ -1,38 +1,28 @@
 #!/usr/bin/env bash
 set -euo pipefail
-set -x
 
-IMAGE_NAME="${IMAGE_NAME:-dl_app_ros2-cuda:humble-cuda12.4}"
-CONTAINER_NAME="${CONTAINER_NAME:-deep_learning_ros2_gpu}"
-
+CONTAINER_NAME="DL_lab_cuda"
+IMAGE_NAME="dl_lab_cuda"
+TAG="${1:-u$(id -u)-g$(id -g)}"   # 預設用當前使用者的 uid/gid tag
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
-HOST_WS="${ROOT_DIR}/ros2_ws"
 
-mkdir -p "${HOST_WS}/src"
-
-# 放行 X 給本機
+echo ">>> Running container: ${CONTAINER_NAME} from image: ${IMAGE_NAME}:${TAG}"
 xhost +local:root 1>/dev/null 2>&1 || true
+
+mkdir -p /tmp/runtime-hrc
 
 docker run -it --rm \
   --gpus all \
-  -e NVIDIA_DRIVER_CAPABILITIES=all \
-  -e NVIDIA_VISIBLE_DEVICES=all \
   --net=host \
   --ipc=host \
   --privileged \
   --device=/dev/bus/usb:/dev/bus/usb \
-  -e DISPLAY="${DISPLAY}" \
+  -e DISPLAY=$DISPLAY \
   -e QT_X11_NO_MITSHM=1 \
-  -e RMW_IMPLEMENTATION=rmw_cyclonedds_cpp \
-  -e ROS_DOMAIN_ID="${ROS_DOMAIN_ID:-7}" \
+  -e XDG_RUNTIME_DIR=/tmp/runtime-hrc \
   -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
+  -v "${ROOT_DIR}":/home/hrc/Workspace:rw \
   -v /etc/localtime:/etc/localtime:ro \
-  -v /etc/timezone:/etc/timezone:ro \
-  -v "${HOST_WS}":/home/hrc/ros2_ws:rw \
-  -v "${ROOT_DIR}":/home/hrc/workspace:rw \
-  -w /home/hrc \
-  -v /dev:/dev \
-  --group-add video \
   --name "${CONTAINER_NAME}" \
-  "${IMAGE_NAME}" \
-  bash
+  "${IMAGE_NAME}:${TAG}" \
+  /bin/bash

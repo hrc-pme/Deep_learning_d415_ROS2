@@ -1,29 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DEFAULT_IMAGE="dl_app_ros2-cuda"
-DEFAULT_TAG="humble-cuda12.4"
+IMAGE_NAME="dl_lab_cuda"
+HOST_UID="$(id -u)"
+HOST_GID="$(id -g)"
+TAG="${1:-u${HOST_UID}-g${HOST_GID}}"
+DOCKERFILE="Dockerfile"
+CONTEXT="."
 
-INPUT="${1:-}"
+echo ">>> Building image: ${IMAGE_NAME}:${TAG} (UID=${HOST_UID}, GID=${HOST_GID})"
 
-IMAGE_NAME="$DEFAULT_IMAGE"
-IMAGE_TAG="$DEFAULT_TAG"
-
-if [[ -n "$INPUT" ]]; then
-  if [[ "$INPUT" == *:* ]]; then
-    IMAGE_NAME="${INPUT%%:*}"
-    IMAGE_TAG="${INPUT##*:}"
-  else
-    IMAGE_NAME="$INPUT"
-  fi
-fi
-
-export DOCKER_BUILDKIT=1
-export COMPOSE_DOCKER_CLI_BUILD=1
-
-echo "==> Building image: ${IMAGE_NAME}:${IMAGE_TAG}"
 docker build \
-  --build-arg NB_UID=$(id -u) \
-  --build-arg NB_GID=$(id -g) \
-  -t "${IMAGE_NAME}:${IMAGE_TAG}" .
-echo "==> Done."
+  -f "${DOCKERFILE}" \
+  --build-arg NB_UID="${HOST_UID}" \
+  --build-arg NB_GID="${HOST_GID}" \
+  -t "${IMAGE_NAME}:${TAG}" \
+  "${CONTEXT}"
+
+echo "✅ Build complete: ${IMAGE_NAME}:${TAG}"

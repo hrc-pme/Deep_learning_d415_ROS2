@@ -75,3 +75,8 @@ docker-compose.override.yml
 Thumbs.db
 *.tmp
 *~
+
+# -------------------------------
+# try/error logs
+# ------------------
+try_error/
