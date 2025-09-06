@@ -102,9 +102,7 @@ RUN pip install --upgrade pip && \
     tensorflow tensorboard && \
     pip install --no-cache-dir --ignore-installed \
       torch torchvision torchaudio \
-      --index-url https://download.pytorch.org/whl/cu124 \
-    pip install --no-cache-dir ultralytics && \
-    pip cache purge || true
+      --index-url https://download.pytorch.org/whl/cu124 
 
 # ===================================================================
 # RealSense 2.56.0
@@ -128,6 +126,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # ===================================================================
 ENV NVIDIA_VISIBLE_DEVICES=all \
     NVIDIA_DRIVER_CAPABILITIES=all
+
+# ===================================================================
+# ADD pkg
+# ===================================================================
+
 
 # ===================================================================
 # Workspace & shell 
