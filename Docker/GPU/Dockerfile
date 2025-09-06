@@ -102,7 +102,9 @@ RUN pip install --upgrade pip && \
     tensorflow tensorboard && \
     pip install --no-cache-dir --ignore-installed \
       torch torchvision torchaudio \
-      --index-url https://download.pytorch.org/whl/cu128
+      --index-url https://download.pytorch.org/whl/cu124 \
+    pip install --no-cache-dir ultralytics && \
+    pip cache purge || true
 
 # ===================================================================
 # RealSense 2.56.0
