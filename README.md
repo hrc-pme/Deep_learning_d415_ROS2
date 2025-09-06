@@ -47,11 +47,13 @@ $ cd ~/Deep_Learning_D415_ROS2
 
 ## 4. Build ROS2 Workspace
 ```
+#
 hrc@hrc-MS-7D98:~$ cb       # cb means colcon build
 ```
 
-## 5. Find the Camera(D415)
+## 5. Find the Camera (D415)
 ```
+#
 rs-enumerate-devices -s # you can see the serial number of your D415 camera
 ```
 ### Update the repo
@@ -61,16 +63,19 @@ open VScode and find the ~/Deep_Learning_D415_ROS2/ros2_ws/src/realsense-ros/rea
 ```
 Remember to colcon build every time changing!
 ```
+#
 hrc@hrc-MS-7D98:~$ cb 
 ```
 
 ## 6. Terminal 1: Turn on D415 
 ```
+#
 ros2 launch realsense2_camera rs_launch.py
 ```
 
 ## 7. Terminal 2: Turn on Rviz for checking the image
 ```
+#
 rviz2 
 ```
 Add
@@ -79,4 +84,4 @@ By topic
     /camera
         /color
             /image_raw
-                Image
+                /Image
