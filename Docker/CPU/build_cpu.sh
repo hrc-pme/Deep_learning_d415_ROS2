@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-IMAGE_NAME="dl_lab_cuda"
+IMAGE_NAME="dl_lab_cpu"
 HOST_UID="$(id -u)"
 HOST_GID="$(id -g)"
 TAG="${1:-u${HOST_UID}-g${HOST_GID}}"
-DOCKERFILE="Dockerfile"
+DOCKERFILE="Dockerfile.cpu"   
 CONTEXT="."
 
-echo ">>> Building image: ${IMAGE_NAME}:${TAG} (UID=${HOST_UID}, GID=${HOST_GID})"
+echo ">>> Building CPU image: ${IMAGE_NAME}:${TAG} (UID=${HOST_UID}, GID=${HOST_GID})"
 
 docker build \
   -f "${DOCKERFILE}" \
@@ -17,4 +17,4 @@ docker build \
   -t "${IMAGE_NAME}:${TAG}" \
   "${CONTEXT}"
 
-echo "✅ Build complete: ${IMAGE_NAME}:${TAG}"
+echo "✅ CPU Build complete: ${IMAGE_NAME}:${TAG}"

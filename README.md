@@ -38,15 +38,19 @@ Choose the appropriate Docker setup based on your hardware:
 ```bash
 # For GPU systems:
 cd Docker/GPU
+chmod +x build_gpu.sh 
 ./build.sh
 cd ~/Deep_Learning_D415_ROS2
-./run.sh
+chmod +x run_gpu.sh 
+./run_gpu.sh
 
 # For CPU systems:
 cd Docker/CPU
+chmod +x build_cpu.sh 
 ./build.sh
 cd ~/Deep_Learning_D415_ROS2
-./run.sh
+chmod +x run_cpu.sh 
+./run_cpu.sh
 ```
 
 ### 4. Build ROS 2 Workspace
