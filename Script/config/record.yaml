@@ -1,27 +1,27 @@
-# 是否錄製所有 topic（true 時會忽略 topics 清單）
+# Whether to record all topics (if true, the 'topics' list is ignored)
 allow_all: false
 
-# 指定要錄的 topics（allow_all=false 時生效）
+# Topics to record (effective only when allow_all=false)
 topics:
   - /tf_static
   - /camera/camera/color/image_raw/compressed
 
-# 需要排除的 topics（只在 allow_all=true 時有用，正則會以 | 連接）
+# Topics to exclude (effective only when allow_all=true; regex patterns are joined with |)
 exclude_topics:
   - ^/rosout.*$
 
-# 輸出資料夾（會自動在底下建立日期時間子資料夾）
+# Output directory 
 output_dir: ~/Workspace/Outputs/rosbags/test
 
-# rosbag2 儲存與壓縮
-storage: sqlite3           # sqlite3 或 mcap（若你有裝 mcap 插件）
-compression: none          # none 或 zstd
-compression_mode: file     # file 或 message（只有 compression != none 才會用到）
+# rosbag2 storage and compression
+storage: sqlite3           # sqlite3 or mcap (requires mcap plugin if using mcap)
+compression: none          # none or zstd
+compression_mode: file     # file or message (only effective when compression != none)
 
-# 檔案切割/時間限制（0 表示不限制）
-max_bag_size: 0            # 單位：Bytes（例如 1073741824 = 1 GiB）
-max_bag_duration: 0        # 單位：秒（例如 600 = 10 分鐘一個 bag）
+# File splitting/time limits (0 means no limit)
+max_bag_size: 0            # Unit: Bytes (e.g., 1073741824 = 1 GiB)
+max_bag_duration: 0        # Unit: Seconds (e.g., 600 = one bag every 10 minutes)
 
-# QoS 覆寫（可留空字串）。例如：~/qos_overrides.yaml
-# 內容格式同 ros2 bag record 的 --qos-profile-overrides-path
+# QoS override (can be left as an empty string). Example: ~/qos_overrides.yaml
+# The content format is the same as the --qos-profile-overrides-path option in ros2 bag record
 qos_profile_overrides_path: ""

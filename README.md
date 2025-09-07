@@ -122,9 +122,9 @@ Expected topics:
 ...
 ```
 
-### 6. Recording ROS Bags
+## Recording ROS Bags
 
-#### 6.1 Configure Recording Settings
+### 1. Configure Recording Settings
 
 Edit the configuration file:
 ```bash
@@ -140,9 +140,12 @@ topics:
 output_dir: ~/Workspace/Outputs/rosbags/test
 ```
 
-#### 6.2 Start Recording
+### 2. Start Recording
+We will start to record a rosbg with camera topics.
 
 Choose one of these methods:
+
+Using GUI will be easier to record mulit bags.  
 
 **Option 1: Using GUI**
 ```bash
@@ -153,4 +156,27 @@ ros2 launch bag_recorder record_with_ui.launch.py
 ```bash
 ros2 launch bag_recorder record.launch.py
 (Press Ctrl + C to stop recording)
+```
+
+## Turn Rosbag to mp4
+Edit the configuration file:
+```bash
+~/Workspace/Script/config/bags2mp4.yaml
+```
+Default configuration:
+```yaml
+jobs:
+  - input_paths:                      # Paths to bag folders
+      - "/home/hrc/Workspace/Outputs/rosbags/test"
+    output_root: "/home/hrc/Workspace/Outputs/mp4/test"       # Output MP4 folder
+    topic: "/camera/camera/color/image_raw/compressed"   
+    # Image topic   If omit → auto-pick if only one; error if multiple
+```  
+> **NOTES**: If Image topic omit → auto-pick if only one; error if multiple
+
+### Convert ROSBags to MP4 Video
+
+```bash
+cd ~/Workspace/Script
+python3 bag2mp4.py
 ```

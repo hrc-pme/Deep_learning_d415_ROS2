@@ -4,8 +4,6 @@ import os
 import signal
 import subprocess
 import sys
-import time
-from datetime import datetime
 from pathlib import Path
 
 import yaml
@@ -15,12 +13,30 @@ def expand_path(p: str) -> str:
     return os.path.abspath(os.path.expanduser(p))
 
 
-def build_command(cfg: dict, out_dir: str) -> list:
+def next_index_folder(root_dir: str) -> str:
+    """
+    Find the next incremental folder name under root_dir as 4-digit index (0001, 0002, ...).
+    Returns the full absolute path to the new folder.
+    """
+    root = Path(root_dir)
+    root.mkdir(parents=True, exist_ok=True)
+
+    existing = []
+    for p in root.iterdir():
+        if p.is_dir() and p.name.isdigit():
+            try:
+                existing.append(int(p.name))
+            except ValueError:
+                pass
+    next_idx = max(existing) + 1 if existing else 1
+    return str(root / f"{next_idx:04d}")
+
+
+def build_command(cfg: dict, out_dir_root: str) -> tuple[list, str]:
     cmd = ["ros2", "bag", "record"]
 
-    # Output folder (with timestamp)
-    ts = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    out_full = os.path.join(out_dir, ts)
+    # Output folder uses sequential numbering: 0001, 0002, ...
+    out_full = next_index_folder(out_dir_root)
     cmd += ["-o", out_full]
 
     # Storage
@@ -55,17 +71,15 @@ def build_command(cfg: dict, out_dir: str) -> list:
         exclude = cfg.get("exclude_topics", []) or []
         exclude = [e for e in exclude if isinstance(e, str) and e.strip()]
         if exclude:
-            # ros2 bag record --exclude <REGEX>
-            # 將多個正則以 | 串接
             exclude_regex = "|".join(f"(?:{e})" for e in exclude)
             cmd += ["--exclude", exclude_regex]
     else:
         topics = cfg.get("topics", []) or []
         if not topics:
-            raise ValueError("allow_all=false 時，topics 不可為空！請在 YAML 中指定至少一個 topic。")
+            raise ValueError("allow_all=false but 'topics' is empty! Please specify at least one topic in YAML.")
         cmd += topics
 
-    return cmd
+    return cmd, out_full
 
 
 def main():
@@ -75,47 +89,45 @@ def main():
 
     cfg_path = expand_path(args.config)
     if not os.path.isfile(cfg_path):
-        print(f"[ERROR] 找不到設定檔：{cfg_path}", file=sys.stderr)
+        print(f"[ERROR] Config file not found: {cfg_path}", file=sys.stderr)
         sys.exit(1)
 
     with open(cfg_path, "r") as f:
         cfg = yaml.safe_load(f) or {}
 
-    out_dir = expand_path(cfg.get("output_dir", "./rosbags"))
-    Path(out_dir).mkdir(parents=True, exist_ok=True)
+    out_dir_root = expand_path(cfg.get("output_dir", "./rosbags"))
+    Path(out_dir_root).mkdir(parents=True, exist_ok=True)
 
-    cmd = build_command(cfg, out_dir)
+    cmd, out_full = build_command(cfg, out_dir_root)
 
-    print("[INFO] 將執行：", " ".join(cmd))
-    print("[INFO] 按 Ctrl+C 可停止錄製。")
+    print("[INFO] Executing:", " ".join(cmd))
+    print("[INFO] Output folder:", out_full)
+    print("[INFO] Press Ctrl+C to stop recording.")
 
-    # 啟動子行程
+    # Start subprocess
     proc = subprocess.Popen(cmd, preexec_fn=os.setsid)
 
     def handle_sigint(signum, frame):
-        print("\n[INFO] 收到中斷訊號，正在停止 rosbag 錄製…")
+        print("\n[INFO] Interrupt signal received, stopping rosbag recording…")
         try:
-            # 對整個 process group 送 SIGINT，等同用 Ctrl+C 停止 ros2 bag
             os.killpg(os.getpgid(proc.pid), signal.SIGINT)
         except Exception as e:
-            print(f"[WARN] 傳送 SIGINT 失敗：{e}")
-        # 等待 ros2 bag 優雅結束
+            print(f"[WARN] Failed to send SIGINT: {e}")
         try:
             proc.wait(timeout=15)
         except subprocess.TimeoutExpired:
-            print("[WARN] 超時未結束，強制終止…")
+            print("[WARN] Did not exit in time, forcing termination…")
             os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
         sys.exit(0)
 
     signal.signal(signal.SIGINT, handle_sigint)
     signal.signal(signal.SIGTERM, handle_sigint)
 
-    # 等待子行程結束
     rc = proc.wait()
     if rc == 0:
-        print("[INFO] 錄製完成。")
+        print("[INFO] Recording finished.")
     else:
-        print(f"[ERROR] ros2 bag record 退出碼：{rc}")
+        print(f"[ERROR] ros2 bag record exited with code: {rc}")
     sys.exit(rc)
 
 

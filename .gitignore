@@ -38,6 +38,7 @@ log/
 *.zip
 *.tar
 *.tar.gz
+*.mp4
 metadata.yaml
 
 # -------------------------------

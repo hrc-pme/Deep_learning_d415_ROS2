@@ -1,0 +1,13 @@
+jobs:
+  - input_paths:                      # Paths to bag folders
+      - "/home/hrc/Workspace/Outputs/rosbags/test"
+    output_root: "/home/hrc/Workspace/Outputs/mp4/test"       # Output MP4 folder
+    topic: "/camera/camera/color/image_raw/compressed"        # Image topic   # Omit → auto-pick if only one; error if multiple
+    fps:                               # Frames per second    # Omit → auto infer from timestamps
+    recursive: true                    # Scan subfolders      # Omit → default true
+    overlay_timestamp: false            # Show time overlay    # Omit → default false
+    resize:                            # Resize (W,H)         # Omit → keep original size
+    codec: "mp4v"                      # Video codec          # Omit → default "mp4v"
+    start_time_sec: 0                  # Start sec            # Omit → default 0
+    end_time_sec: null                 # End sec              # Omit/null → until bag end
+    max_frames: null                   # Limit frames         # Omit/null → export all
