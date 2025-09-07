@@ -38,6 +38,7 @@ log/
 *.zip
 *.tar
 *.tar.gz
+metadata.yaml
 
 # -------------------------------
 # CMake / catkin / colcon
