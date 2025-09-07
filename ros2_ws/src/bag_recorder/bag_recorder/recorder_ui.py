@@ -1,170 +1,227 @@
 #!/usr/bin/env python3
-import json
+import argparse
+import os
+import signal
+import subprocess
+import sys
+import time
+from datetime import datetime
+from pathlib import Path
 import threading
 import tkinter as tk
-from datetime import datetime, timezone
-
-import rclpy
-from rclpy.node import Node
-from std_srvs.srv import Trigger
-from std_msgs.msg import String
+from tkinter import messagebox
+import yaml
 
 
-def _parse_iso8601(ts: str):
-    """Parse ISO8601 with timezone; return aware datetime or None."""
-    if not ts:
-        return None
-    # allow 'Z'
-    if ts.endswith('Z'):
-        ts = ts[:-1] + '+00:00'
-    try:
-        return datetime.fromisoformat(ts)
-    except Exception:
-        return None
+def expand_path(p: str) -> str:
+    return os.path.abspath(os.path.expanduser(p))
 
 
-class BagRecorderUI(Node):
-    def __init__(self):
-        super().__init__('bag_recorder_ui')
-        self.status = {
-            'is_recording': False,
-            'bag_path': '',
-            'start_time_iso': '',
-            'elapsed_seconds': 0
-        }
-        self.sub = self.create_subscription(String, 'bag_recorder/status', self._on_status, 10)
-        self.cli_start = self.create_client(Trigger, 'start_recording')
-        self.cli_stop  = self.create_client(Trigger, 'stop_recording')
+def build_command_and_outdir(cfg: dict) -> tuple[list, str]:
+    """Build ros2 bag record command and return output directory"""
+    cmd = ["ros2", "bag", "record"]
 
-        # Tkinter UI
-        self.root = tk.Tk()
-        self.root.title('ROS2 Bag Recorder')
-        self.root.protocol("WM_DELETE_WINDOW", self._on_close_clicked)
+    # Root output dir
+    out_dir_root = expand_path(cfg.get("output_dir", "./rosbags"))
+    Path(out_dir_root).mkdir(parents=True, exist_ok=True)
 
-        self.label_state = tk.Label(self.root, text='State: idle', font=('Arial', 16))
-        self.label_state.pack(padx=10, pady=5)
+    # Find next index folder (0001, 0002, …)
+    existing = []
+    for p in Path(out_dir_root).iterdir():
+        if p.is_dir() and p.name.isdigit():
+            existing.append(int(p.name))
+    next_idx = max(existing) + 1 if existing else 1
+    folder_name = f"{next_idx:04d}"   # 0001 格式
+    out_full = os.path.join(out_dir_root, folder_name)
 
-        self.label_path = tk.Label(self.root, text='Path: -', font=('Arial', 12))
-        self.label_path.pack(padx=10, pady=5)
+    # ros2 bag record -o <out_full>
+    cmd += ["-o", out_full]
 
-        # 顯示毫秒：HH:MM:SS.mmm
-        self.label_elapsed = tk.Label(self.root, text='Elapsed: 00:00:00.000', font=('Arial', 22))
-        self.label_elapsed.pack(padx=10, pady=12)
+    # Storage
+    storage = cfg.get("storage", "sqlite3")
+    if storage:
+        cmd += ["--storage", storage]
 
-        frame_btn = tk.Frame(self.root)
-        frame_btn.pack(pady=10)
-        tk.Button(frame_btn, text='Start', width=12, command=self._call_start).pack(side=tk.LEFT, padx=6)
-        tk.Button(frame_btn, text='Stop / Close', width=12, command=self._call_stop_or_close).pack(side=tk.LEFT, padx=6)
+    # Compression
+    compression = cfg.get("compression", "none")
+    if compression and str(compression).lower() != "none":
+        cmd += ["--compression-format", compression]
+        mode = cfg.get("compression_mode", "file")
+        cmd += ["--compression-mode", mode]
 
-        # 每 100ms 更新一次，顯示毫秒更順
-        self._tick()
+    # Limits
+    max_bag_size = int(cfg.get("max_bag_size", 0) or 0)
+    if max_bag_size > 0:
+        cmd += ["--max-bag-size", str(max_bag_size)]
+    max_bag_duration = int(cfg.get("max_bag_duration", 0) or 0)
+    if max_bag_duration > 0:
+        cmd += ["--max-bag-duration", str(max_bag_duration)]
 
-    # -------- ROS callbacks --------
-    def _on_status(self, msg: String):
+    # QoS overrides
+    qos_path = cfg.get("qos_profile_overrides_path", "")
+    if isinstance(qos_path, str) and qos_path.strip():
+        cmd += ["--qos-profile-overrides-path", expand_path(qos_path)]
+
+    # Topic selection
+    allow_all = bool(cfg.get("allow_all", False))
+    if allow_all:
+        cmd.append("-a")
+        exclude = cfg.get("exclude_topics", []) or []
+        exclude = [e for e in exclude if isinstance(e, str) and e.strip()]
+        if exclude:
+            exclude_regex = "|".join(f"(?:{e})" for e in exclude)
+            cmd += ["--exclude", exclude_regex]
+    else:
+        topics = cfg.get("topics", []) or []
+        if not topics:
+            raise ValueError("allow_all=false but no topics specified in YAML config.")
+        cmd += topics
+
+    return cmd, out_full
+
+
+class RecorderUI:
+    def __init__(self, root: tk.Tk, cfg_path: str):
+        self.root = root
+        self.cfg_path = cfg_path
+        self.proc: subprocess.Popen | None = None
+        self.start_time: float | None = None
+        self.out_dir: str = ""
+        self.running = False
+
+        self.root.title("bag_recorder")
+        self.root.geometry("720x200")
+
+        # Widgets
+        row = 0
+        tk.Label(root, text="Config file:", anchor="w").grid(row=row, column=0, sticky="w", padx=8, pady=6)
+        self.lbl_cfg = tk.Label(root, text=self.cfg_path, anchor="w", fg="blue")
+        self.lbl_cfg.grid(row=row, column=1, columnspan=3, sticky="w", padx=8, pady=6)
+
+        row += 1
+        tk.Label(root, text="Output folder:", anchor="w").grid(row=row, column=0, sticky="w", padx=8, pady=6)
+        self.lbl_out = tk.Label(root, text="(not started)", anchor="w")
+        self.lbl_out.grid(row=row, column=1, columnspan=3, sticky="w", padx=8, pady=6)
+
+        row += 1
+        tk.Label(root, text="Status:", anchor="w").grid(row=row, column=0, sticky="w", padx=8, pady=6)
+        self.lbl_status = tk.Label(root, text="Idle", anchor="w", fg="darkorange")
+        self.lbl_status.grid(row=row, column=1, sticky="w", padx=8, pady=6)
+
+        tk.Label(root, text="Record time:", anchor="w").grid(row=row, column=2, sticky="e", padx=8, pady=6)
+        self.lbl_elapsed = tk.Label(root, text="00:00.000", anchor="w")
+        self.lbl_elapsed.grid(row=row, column=3, sticky="w", padx=8, pady=6)
+
+        row += 1
+        self.btn_start = tk.Button(root, text="Start Recording", command=self.start_recording, width=18)
+        self.btn_start.grid(row=row, column=1, padx=8, pady=12, sticky="e")
+
+        self.btn_stop = tk.Button(root, text="Stop", command=self.stop_recording, state="disabled", width=12)
+        self.btn_stop.grid(row=row, column=2, padx=8, pady=12, sticky="w")
+
+        # Timer
+        self.update_timer()
+
+        # Close event
+        self.root.protocol("WM_DELETE_WINDOW", self.on_close)
+
+    def start_recording(self):
+        if self.running:
+            return
+        # Load YAML
         try:
-            self.status = json.loads(msg.data)
-        except Exception:
-            pass
-
-    # -------- UI helpers --------
-    @staticmethod
-    def _fmt_mmss_mmm(total_ms: int) -> str:
-        if total_ms < 0:
-            total_ms = 0
-        ms = total_ms % 1000
-        total_sec = total_ms // 1000
-        m = total_sec // 60
-        s = total_sec % 60
-        return f'{m:02d}:{s:02d}.{ms:03d}'
-
-    def _current_elapsed_ms(self) -> int:
-        """優先用 start_time_iso 計算，避免只得整秒；若缺就退回 elapsed_seconds。"""
-        is_rec = bool(self.status.get('is_recording', False))
-        start_iso = self.status.get('start_time_iso', '')
-        dt_start = _parse_iso8601(start_iso)
-        if is_rec and dt_start is not None:
-            now = datetime.now(timezone.utc)
-            # 兩者都應是 aware datetime
-            delta = now - dt_start
-            return int(delta.total_seconds() * 1000.0)
-        # 退回（可能只有整秒）
-        sec = int(self.status.get('elapsed_seconds', 0) or 0)
-        return sec * 1000
-
-    def _tick(self):
-        is_rec = bool(self.status.get('is_recording', False))
-        bag_path = self.status.get('bag_path', '') or '-'
-        elapsed_ms = self._current_elapsed_ms()
-
-        self.label_state.config(text=f'State: {"RECORDING" if is_rec else "STOP"}',
-                                fg='green' if is_rec else 'gray')
-        self.label_path.config(text=f'Path: {bag_path}')
-        self.label_elapsed.config(text=f'Record: {self._fmt_mmss_mmm(elapsed_ms)}')
-
-        # 100ms 更新一次，顯示毫秒
-        self.root.after(100, self._tick)
-
-    # -------- Buttons & window close behavior --------
-    def _call_start(self):
-        if not self.cli_start.service_is_ready():
-            self.get_logger().info('Waiting for start_recording service...')
-            self.cli_start.wait_for_service(2.0)
-        req = Trigger.Request()
-        fut = self.cli_start.call_async(req)
-        fut.add_done_callback(
-            lambda f: self.get_logger().info(f'Start: {getattr(f.result(), "message", "failed")}'))
-
-    def _call_stop_or_close(self):
-        """第一次 Stop：停止；若已是 IDLE，再按一次→直接關視窗。"""
-        is_rec = bool(self.status.get('is_recording', False))
-        if is_rec:
-            self._send_stop()
-        else:
-            # 已經是 IDLE，就關閉 UI
-            self._destroy_ui()
-
-    def _send_stop(self, then_close=False):
-        if not self.cli_stop.service_is_ready():
-            self.get_logger().info('Waiting for stop_recording service...')
-            self.cli_stop.wait_for_service(2.0)
-        req = Trigger.Request()
-        fut = self.cli_stop.call_async(req)
-
-        def _after(f):
-            self.get_logger().info(f'Stop: {getattr(f.result(), "message", "failed")}')
-            if then_close:
-                # 稍等 200ms 讓狀態回拋，再關
-                self.root.after(200, self._destroy_ui)
-
-        fut.add_done_callback(_after)
-
-    def _on_close_clicked(self):
-        """點 ✕：若在錄製→先 stop 再關；否則直接關。"""
-        is_rec = bool(self.status.get('is_recording', False))
-        if is_rec:
-            self._send_stop(then_close=True)
-        else:
-            self._destroy_ui()
-
-    def _destroy_ui(self):
+            with open(self.cfg_path, "r") as f:
+                cfg = yaml.safe_load(f) or {}
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to load config file:\n{e}")
+            return
         try:
-            self.root.destroy()
-        except Exception:
-            pass
+            cmd, out_full = build_command_and_outdir(cfg)
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
+            return
 
-def _spin(node):
-    rclpy.spin(node)
+        self.out_dir = out_full
+        self.lbl_out.config(text=out_full)
+        self.lbl_status.config(text="Starting...", fg="darkorange")
+        self.root.update_idletasks()
 
-def main():
-    rclpy.init()
-    node = BagRecorderUI()
-    t = threading.Thread(target=_spin, args=(node,), daemon=True)
-    t.start()
-    try:
-        node.root.mainloop()
-    finally:
-        node.destroy_node()
-        rclpy.shutdown()
+        # Start subprocess
+        try:
+            self.proc = subprocess.Popen(cmd, preexec_fn=os.setsid)
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to launch ros2 bag record:\n{e}")
+            self.proc = None
+            return
 
-if __name__ == '__main__':
-    main()
+        self.start_time = time.time()
+        self.running = True
+        self.btn_start.config(state="disabled")
+        self.btn_stop.config(state="normal")
+        self.lbl_status.config(text="Recording", fg="green")
+
+        # Watch process in background
+        threading.Thread(target=self._watch_proc, daemon=True).start()
+
+    def _watch_proc(self):
+        if not self.proc:
+            return
+        rc = self.proc.wait()
+        # Back to UI thread
+        def done():
+            self.running = False
+            self.btn_start.config(state="normal")
+            self.btn_stop.config(state="disabled")
+            if rc == 0:
+                self.lbl_status.config(text="Stopped (normal)", fg="black")
+            else:
+                self.lbl_status.config(text=f"Exited with error (rc={rc})", fg="red")
+        self.root.after(0, done)
+
+    def stop_recording(self):
+        if not self.running or not self.proc:
+            return
+        try:
+            os.killpg(os.getpgid(self.proc.pid), signal.SIGINT)
+        except Exception as e:
+            messagebox.showwarning("Warning", f"Failed to send stop signal:\n{e}")
+
+    def update_timer(self):
+        if self.running and self.start_time:
+            elapsed = time.time() - self.start_time
+            minutes = int(elapsed // 60)
+            seconds = int(elapsed % 60)
+            millis = int((elapsed * 1000) % 1000)
+            self.lbl_elapsed.config(text=f"{minutes:02d}:{seconds:02d}.{millis:03d}")
+        self.root.after(100, self.update_timer)  # update every 100 ms
+
+    def on_close(self):
+        if self.running and self.proc:
+            if not messagebox.askyesno("Confirm", "Recording is still running. Do you want to stop and exit?"):
+                return
+            try:
+                os.killpg(os.getpgid(self.proc.pid), signal.SIGINT)
+                time.sleep(1.0)
+            except Exception:
+                pass
+        self.root.destroy()
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description="Simple UI to record ROS 2 bag with a YAML config.")
+    parser.add_argument("-c", "--config", required=True, help="Path to config.yaml")
+    args = parser.parse_args(argv)
+
+    cfg_path = expand_path(args.config)
+    if not os.path.isfile(cfg_path):
+        print(f"[ERROR] Config file not found: {cfg_path}", file=sys.stderr)
+        return 1
+
+    root = tk.Tk()
+    app = RecorderUI(root, cfg_path)
+    root.mainloop()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

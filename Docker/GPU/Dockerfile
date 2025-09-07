@@ -71,26 +71,29 @@ RUN curl -fsSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key \
 # ===================================================================
 # Install ROS 2 
 # ===================================================================
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        ros-${ROS_DISTRO}-desktop                \
-        ros-${ROS_DISTRO}-rosbridge-server       \
-        ros-${ROS_DISTRO}-teleop-twist-keyboard  \
-        ros-${ROS_DISTRO}-teleop-twist-joy       \
-        ros-${ROS_DISTRO}-tf2-tools              \
-        ros-${ROS_DISTRO}-tf2-geometry-msgs      \
-        ros-${ROS_DISTRO}-tf2-sensor-msgs        \
-        ros-${ROS_DISTRO}-stereo-image-proc      \
-        ros-${ROS_DISTRO}-image-tools            \
-        ros-${ROS_DISTRO}-image-transport-plugins\
-        ros-${ROS_DISTRO}-vision-opencv         \
-        ros-${ROS_DISTRO}-diagnostic-updater \
-        python3-colcon-common-extensions         \
-        python3-argcomplete                      \
-        python3-rosdep                           \
-    && rosdep init && rosdep update              \
-    && rm -rf /var/lib/apt/lists/*
-
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      software-properties-common \
+ && add-apt-repository universe \
+ && apt-get update && apt-get install -y --no-install-recommends \
+      ros-${ROS_DISTRO}-desktop \
+      ros-${ROS_DISTRO}-rosbridge-server \
+      ros-${ROS_DISTRO}-teleop-twist-keyboard \
+      ros-${ROS_DISTRO}-teleop-twist-joy \
+      ros-${ROS_DISTRO}-tf2-tools \
+      ros-${ROS_DISTRO}-tf2-geometry-msgs \
+      ros-${ROS_DISTRO}-tf2-sensor-msgs \
+      ros-${ROS_DISTRO}-stereo-image-proc \
+      ros-${ROS_DISTRO}-image-tools \
+      ros-${ROS_DISTRO}-image-transport-plugins \
+      ros-${ROS_DISTRO}-vision-opencv \
+      ros-${ROS_DISTRO}-diagnostic-updater \
+      ros-${ROS_DISTRO}-rmw-cyclonedds-cpp \
+      ros-${ROS_DISTRO}-rosbag2-storage-mcap \
+      python3-colcon-common-extensions \
+      python3-argcomplete \
+      python3-rosdep \
+ && rosdep init && rosdep update \
+ && rm -rf /var/lib/apt/lists/*
 # ===================================================================
 # Python pkg（with PyTorch CUDA 12.8 ）
 # ===================================================================
@@ -133,7 +136,16 @@ ENV NVIDIA_VISIBLE_DEVICES=all \
 
 
 # ===================================================================
-# Workspace & shell 
+# Workspace & shell setup
+# 
+# This section:
+# - Sets default RMW implementation and ROS_DOMAIN_ID
+# - Ensures ROS base environment is always sourced
+# - Defines alias `cb` for quick workspace build and source
+# - Redirects colcon logs to a fixed path (~/.colcon/log)
+# - Auto-sources overlay workspace if it exists
+# - Prepares ~/.ros/log with proper permissions
+# - Forces ROS/launch logs to be stored under ~/.ros/log
 # ===================================================================
 RUN printf '%s\n' \
   'export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp' \
@@ -142,23 +154,22 @@ RUN printf '%s\n' \
   > /etc/profile.d/ros.sh && \
   echo 'source /opt/ros/${ROS_DISTRO}/setup.bash' >> /etc/bash.bashrc && \
   { \
-    # 方便編譯的 alias（含正確的 --log-base 放在子命令前）
+    # Convenient alias for building (with correct --log-base placed before subcommand)
     echo 'alias cb="( cd \"$HOME/Workspace/ros2_ws\" && colcon --log-base $HOME/.colcon/log build --merge-install --symlink-install && source install/setup.bash )"'; \
-    # 固定 colcon log 位置
+    # Set a fixed location for colcon logs
     echo 'mkdir -p $HOME/.colcon/log'; \
     echo 'export COLCON_LOG_PATH=$HOME/.colcon/log'; \
-    # 自動載入 ROS base 與（若存在）overlay
+    # Auto-source ROS base and (if available) overlay
     echo '[ -f /opt/ros/$ROS_DISTRO/setup.bash ] && source /opt/ros/$ROS_DISTRO/setup.bash'; \
     echo '[ -f $HOME/Workspace/ros2_ws/install/setup.bash ] && source $HOME/Workspace/ros2_ws/install/setup.bash'; \
   } >> /home/${NB_USER}/.bashrc && \
-  # 準備 ~/.ros/log 並給正確權限
+  # Prepare ~/.ros/log and set correct permissions
   mkdir -p /home/${NB_USER}/.ros/log && \
   chown -R ${NB_USER}:${NB_USER} /home/${NB_USER}
 
-# 讓 ROS/launch 的 log 固定寫到 ~/.ros/log
+# Force ROS/launch logs to be written into ~/.ros/log
 ENV ROS_LOG_DIR=/home/${NB_USER}/.ros/log \
     LAUNCH_LOG_DIR=/home/${NB_USER}/.ros/log
-
 # ===================================================================
 # switch user
 # ===================================================================

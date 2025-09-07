@@ -19,10 +19,13 @@ docker run -it --rm \
   --device=/dev/bus/usb:/dev/bus/usb \
   -e DISPLAY=$DISPLAY \
   -e QT_X11_NO_MITSHM=1 \
+  -e RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION:-rmw_cyclonedds_cpp} \
+  -e ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0} \
   -e XDG_RUNTIME_DIR=/tmp/runtime-hrc \
   -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
   -v "${ROOT_DIR}":/home/hrc/Workspace:rw \
   -v /etc/localtime:/etc/localtime:ro \
+  -v /tmp/runtime-hrc:/tmp/runtime-hrc:rw \
   --name "${CONTAINER_NAME}" \
   "${IMAGE_NAME}:${TAG}" \
   /bin/bash

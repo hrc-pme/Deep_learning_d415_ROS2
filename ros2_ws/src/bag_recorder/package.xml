@@ -1,22 +1,29 @@
 <?xml version="1.0"?>
-<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>bag_recorder</name>
-  <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="hrc@todo.todo">hrc</maintainer>
-  <license>TODO: License declaration</license>
+  <version>0.1.0</version>
+  <description>Record rosbag2 using a YAML config via launch or CLI.</description>
 
-  <depend>rclpy</depend>
-  <depend>std_srvs</depend>
-  <depend>std_msgs</depend>
-  <depend>rcl_interfaces</depend>
+  <maintainer email="you@example.com">Your Name</maintainer>
+  <license>MIT</license>
 
-  <test_depend>ament_copyright</test_depend>
-  <test_depend>ament_flake8</test_depend>
-  <test_depend>ament_pep257</test_depend>
-  <test_depend>python3-pytest</test_depend>
+  <!-- Core build/exec dependencies -->
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_python</buildtool_depend>
 
+  <!-- We shell out to `ros2 bag record`, so rosbag2 and friends should be present -->
+  <exec_depend>ros2bag</exec_depend>
+  <exec_depend>rosbag2_storage</exec_depend>
+  <exec_depend>rosbag2_compression</exec_depend>
+
+  <!-- Launch system -->
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+
+  <!-- Python deps -->
+  <exec_depend>python3-yaml</exec_depend>
+
+  <!-- For ament index to locate package resources -->
   <export>
     <build_type>ament_python</build_type>
   </export>
