@@ -91,10 +91,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       python3-colcon-common-extensions \
       python3-argcomplete \
       python3-rosdep \
-      **ros-${ROS_DISTRO}-rosidl-default-generators \
+      ros-${ROS_DISTRO}-rosidl-default-generators \
       ros-${ROS_DISTRO}-rosidl-default-runtime \
       ros-${ROS_DISTRO}-ament-cmake \
-      ros-${ROS_DISTRO}-ament-cmake-auto** \
+      ros-${ROS_DISTRO}-ament-cmake-auto \
  && rosdep init && rosdep update \
  && rm -rf /var/lib/apt/lists/*
 
