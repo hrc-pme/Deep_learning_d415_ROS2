@@ -158,7 +158,7 @@ ros2 launch bag_recorder record.launch.py
 (Press Ctrl + C to stop recording)
 ```
 
-## Turn Rosbag to mp4
+## Convert ROSBags to MP4 Video
 Edit the configuration file:
 ```bash
 ~/Workspace/Script/config/bags2mp4.yaml
