@@ -80,3 +80,4 @@ Thumbs.db
 # try/error logs
 # ------------------
 try_error/
+test/
