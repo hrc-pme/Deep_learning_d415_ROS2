@@ -104,6 +104,11 @@ In Terminal 2:
 ```bash
 rviz2
 ```
+OR you can open rosbridge visualize in foxglove
+```bash
+ros2 launch rosbridge_server rosbridge_websocket_launch.xml
+```
+
 
 Then in RViz2:
 1. Click "Add"

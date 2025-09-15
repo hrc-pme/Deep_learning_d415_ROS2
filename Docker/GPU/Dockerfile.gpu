@@ -94,18 +94,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       python3-rosdep \
  && rosdep init && rosdep update \
  && rm -rf /var/lib/apt/lists/*
-# ===================================================================
-# Python pkg（with PyTorch CUDA 12.8 ）
-# ===================================================================
-RUN pip install --upgrade pip && \
-    pip install numpy scipy matplotlib pandas \
-    opencv-python opencv-python-headless \
-    scikit-learn scikit-image Pillow \
-    pyserial pexpect future pyquaternion pyyaml \
-    tensorflow tensorboard && \
-    pip install --no-cache-dir --ignore-installed \
-      torch torchvision torchaudio \
-      --index-url https://download.pytorch.org/whl/cu124 
 
 # ===================================================================
 # RealSense 2.56.0
@@ -125,10 +113,29 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/*
 
 # ===================================================================
+# Python pkg（with PyTorch CUDA 12.4 ）
+# ===================================================================
+RUN pip install --upgrade pip && \
+    pip install numpy==1.26.4 matplotlib==3.8.* scipy pandas \
+    opencv-python opencv-python-headless \
+    scikit-learn scikit-image Pillow \
+    pyserial pexpect future pyquaternion pyyaml \
+    tensorflow tensorboard && \
+    pip install --no-cache-dir --ignore-installed \
+      torch torchvision torchaudio \
+      --index-url https://download.pytorch.org/whl/cu124 
+
+
+# ===================================================================
 # NVIDIA Runtime
 # ===================================================================
 ENV NVIDIA_VISIBLE_DEVICES=all \
     NVIDIA_DRIVER_CAPABILITIES=all
+
+# ===================================================================
+# Detectron2 
+# ===================================================================
+RUN python3 -m pip install 'git+https://github.com/facebookresearch/detectron2.git'
 
 # ===================================================================
 # ADD pkg

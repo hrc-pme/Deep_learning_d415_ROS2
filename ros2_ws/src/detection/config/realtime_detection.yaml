@@ -1,0 +1,17 @@
+realtime_detection_node:
+  ros__parameters:
+    # topic（CompressedImage）
+    in_image_topic:  "/camera/camera/color/image_raw/compressed"
+    out_image_topic: "/camera/color/image_detection/compressed"
+
+    # Confidence threshold
+    score_thresh: 0.8
+
+    # Inference period (s)
+    timer_period: 0.01
+
+    # Model
+    task: "bbox"   # bbox | instance | keypoint | panoptic
+    
+    # Computation device
+    device: "auto"     # cpu | cuda | auto

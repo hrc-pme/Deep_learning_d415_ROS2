@@ -1,3 +1,6 @@
 [submodule "ros2_ws/src/realsense-ros"]
 	path = ros2_ws/src/realsense-ros
 	url = https://github.com/LesterLiou/realsense-ros
+[submodule "detectron2"]
+	path = detectron2
+	url = https://github.com/hrc-pme/detectron2.git
