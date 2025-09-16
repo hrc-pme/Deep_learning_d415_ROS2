@@ -1,20 +1,38 @@
 #!/usr/bin/env bash
+
+# DOCKERHUB_USER=---- ./build_gpu.sh humble-cuda12.4
+
 set -euo pipefail
 
 IMAGE_NAME="dl_lab_cuda"
-HOST_UID="$(id -u)"
-HOST_GID="$(id -g)"
-TAG="${1:-u${HOST_UID}-g${HOST_GID}}"
 DOCKERFILE="Dockerfile.gpu"
 CONTEXT="."
 
-echo ">>> Building image: ${IMAGE_NAME}:${TAG} (UID=${HOST_UID}, GID=${HOST_GID})"
+# 1) Local build (keeps UID/GID tag for your own machine)
+HOST_UID="$(id -u)"
+HOST_GID="$(id -g)"
+LOCAL_TAG="u${HOST_UID}-g${HOST_GID}"
 
-docker build \
-  -f "${DOCKERFILE}" \
-  --build-arg NB_UID="${HOST_UID}" \
-  --build-arg NB_GID="${HOST_GID}" \
-  -t "${IMAGE_NAME}:${TAG}" \
-  "${CONTEXT}"
+echo ">>> Local build: ${IMAGE_NAME}:${LOCAL_TAG}"
+docker build -f "${DOCKERFILE}" -t "${IMAGE_NAME}:${LOCAL_TAG}" "${CONTEXT}"
+echo "✅ Local build complete: ${IMAGE_NAME}:${LOCAL_TAG}"
 
-echo "✅ Build complete: ${IMAGE_NAME}:${TAG}"
+# 2) Prepare local publish-style tags (no push)
+PUBLISH_USER="${DOCKERHUB_USER:-your_dockerhub_name}"
+PUBLISH_REPO="${PUBLISH_USER}/dl_lab_cuda"
+PUBLISH_TAG="${1:-humble-cuda12.4}"
+
+echo ">>> Creating local tags (no push):"
+echo "    - ${PUBLISH_REPO}:${PUBLISH_TAG}"
+echo "    - ${PUBLISH_REPO}:latest"
+docker tag "${IMAGE_NAME}:${LOCAL_TAG}" "${PUBLISH_REPO}:${PUBLISH_TAG}"
+docker tag "${IMAGE_NAME}:${LOCAL_TAG}" "${PUBLISH_REPO}:latest"
+
+echo " Done. Images available locally:"
+echo "    ${IMAGE_NAME}:${LOCAL_TAG}"
+echo "    ${PUBLISH_REPO}:${PUBLISH_TAG}"
+echo "    ${PUBLISH_REPO}:latest"
+echo ""
+echo " If you later want to push manually, run:"
+echo "    docker push ${PUBLISH_REPO}:${PUBLISH_TAG}"
+echo "    docker push ${PUBLISH_REPO}:latest"

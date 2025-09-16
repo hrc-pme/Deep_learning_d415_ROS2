@@ -3,7 +3,13 @@ We will write down some common question you will face here. Feel free to ask for
 
 # Wrong PyTorch (GPU Version)
 
-> **Note**: Check out your cuda version if you are using GPU image.In this image the default `pytorch` will be for `CUDA12.4`
+> **Note**: Check out your cuda version if you are using GPU image.In this image the default `pytorch` will be for `CUDA12.4` or `CUDA12.8`
+
+There are two existing version CUDA12.4 and CUDA12.8
+You can change in `run_gpu.sh` 
+```bash
+TAG="${1:-humble-cuda12.4}"       # humble-cuda12.4 | humble-cuda12.8
+```
 
 ## 1. ) Change Temporary
 If you are already in the container, you will only can change temporary,

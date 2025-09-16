@@ -35,25 +35,33 @@ Choose the appropriate Docker setup based on your hardware:
 - Use GPU version if you have a compatible graphics card
 - Use CPU version for systems without GPU
 
+
 ```bash
 # For GPU systems:
-cd Docker/GPU
-chmod +x build_gpu.sh 
-./build.sh
+# Check your CUDA version first
+nvidia-smi
+```
+> If you want to change your CUDA version Check on this repo. **[CUDA Version](https://github.com/hrc-pme/Deep_learning_d415_ROS2/blob/main/Tutorial/DockerImage.md#wrong-pytorch-gpu-version)**
+
+```bash
 cd ~/Deep_Learning_D415_ROS2
 chmod +x run_gpu.sh 
-./run_gpu.sh
+./run_gpu.sh      # default CUDA version 12.4
+```
 
+#### If you are using VMware or any virtual machine, you can use CPU version.
+```bash
 # For CPU systems:
-cd Docker/CPU
-chmod +x build_cpu.sh 
-./build.sh
 cd ~/Deep_Learning_D415_ROS2
 chmod +x run_cpu.sh 
 ./run_cpu.sh
 ```
+In both container 
+```
+user: hrc 
+passward: 111111
+```
 
-> **NOTE: Check out your CUDA & PyTorch version [DOCKERIMAGE](https://github.com/hrc-pme/Deep_learning_d415_ROS2/blob/main/Tutorial/DockerImage.md#wrong-pytorch-gpu-version)
 
 ### 4. Build ROS 2 Workspace
 

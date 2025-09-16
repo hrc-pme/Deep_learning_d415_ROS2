@@ -96,7 +96,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  && rm -rf /var/lib/apt/lists/*
 
 # ===================================================================
-# RealSense 2.56.0
+# RealSense 2.56.5
 # ===================================================================
 ENV LIBREALSENSE_VERSION=2.56.5
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -123,7 +123,7 @@ RUN pip install --upgrade pip && \
     tensorflow tensorboard && \
     pip install --no-cache-dir --ignore-installed \
       torch torchvision torchaudio \
-      --index-url https://download.pytorch.org/whl/cu124 
+      --index-url https://download.pytorch.org/whl/cu128 
 
 
 # ===================================================================
@@ -177,10 +177,15 @@ RUN printf '%s\n' \
 # Force ROS/launch logs to be written into ~/.ros/log
 ENV ROS_LOG_DIR=/home/${NB_USER}/.ros/log \
     LAUNCH_LOG_DIR=/home/${NB_USER}/.ros/log
-# ===================================================================
-# switch user
-# ===================================================================
 
-USER ${NB_USER}
+# ===================================================================
+# Add entrypoint to remap UID/GID at runtime 
+# ===================================================================
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends gosu && rm -rf /var/lib/apt/lists/*
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 WORKDIR /home/${NB_USER}
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["/bin/bash"]

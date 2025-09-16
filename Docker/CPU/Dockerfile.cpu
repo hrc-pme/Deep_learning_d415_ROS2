@@ -174,8 +174,13 @@ ENV ROS_LOG_DIR=/home/${NB_USER}/.ros/log \
     LAUNCH_LOG_DIR=/home/${NB_USER}/.ros/log
 
 # ===================================================================
-# switch user
+# Add entrypoint to remap UID/GID at runtime 
 # ===================================================================
-USER ${NB_USER}
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends gosu && rm -rf /var/lib/apt/lists/*
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 WORKDIR /home/${NB_USER}
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["/bin/bash"]
