@@ -15,7 +15,7 @@ This repository contains code for working with the Intel RealSense D415 camera i
 
 ```bash
 cd ~
-git clone --recursive git@github.com:LesterLiou/Deep_learning_d415_ROS2.git
+git clone --recursive git@github.com:hrc-pme/Deep_learning_d415_ROS2.git
 ```
 
 > **Note**: The `--recursive` flag is required to clone submodules properly
@@ -53,7 +53,7 @@ chmod +x run_cpu.sh
 ./run_cpu.sh
 ```
 
-> **NOTE: Check out your CUDA & PyTorch version [DOCKERIMAGE](https://github.com/LesterLiou/Deep_learning_d415_ROS2/blob/main/Tutorial/DockerImage.md#wrong-pytorch-gpu-version)
+> **NOTE: Check out your CUDA & PyTorch version [DOCKERIMAGE](https://github.com/hrc-pme/Deep_learning_d415_ROS2/blob/main/Tutorial/DockerImage.md#wrong-pytorch-gpu-version)
 
 ### 4. Build ROS 2 Workspace
 
@@ -193,4 +193,4 @@ python3 bag2mp4.py
 ```
 # Keep Going for Detection
 
-## [Detection](https://github.com/LesterLiou/Deep_learning_d415_ROS2/blob/main/Tutorial/maskrcnn.md)
+## [Detection](https://github.com/hrc-pme/Deep_learning_d415_ROS2/blob/main/Tutorial/maskrcnn.md)
