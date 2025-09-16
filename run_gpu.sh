@@ -4,7 +4,7 @@ set -euo pipefail
 CONTAINER_NAME="DL_lab_cuda"
 HUB_USER="hrcnthu"                 
 REPO_NAME="dl_lab_cuda"
-TAG="${1:-humble-cuda12.4}"        # Default humble-cuda12.4, there are also: humble-cuda12.8
+TAG="${1:-humble-cuda12.8}"        # Default humble-cuda12.4, there are also: humble-cuda12.8
 IMAGE="${HUB_USER}/${REPO_NAME}:${TAG}"
 
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"

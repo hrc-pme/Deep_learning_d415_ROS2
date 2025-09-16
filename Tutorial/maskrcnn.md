@@ -5,7 +5,7 @@ This tutorial will guide you through setting up and running Mask R-CNN for objec
 
 ## Case 1: Real-time Detection
 
-### **For real-time detection, make sure the camera is active (check [D415_tutorial](https://github.com/LesterLiou/Deep_learning_d415_ROS2/tree/main)) !!!**
+### **For real-time detection, make sure the camera is active (check [D415_tutorial](https://github.com/LesterLiou/Deep_learning_d415_ROS2/tree/main###5.3-Launch-Camera)) !!!**
 
 
 ### Terminal: Start Real-time Mask R-CNN Inference

@@ -17,6 +17,7 @@ def generate_launch_description():
 
     param_file = LaunchConfiguration('param_file')
     device_arg = LaunchConfiguration('device') 
+    task_arg = LaunchConfiguration('task')
 
     return LaunchDescription([
         # Allow overriding the YAML via param_file:=...
