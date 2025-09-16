@@ -52,7 +52,7 @@ If you prefer to use online resources, check this Colab notebook after you turn 
 ### 1. Please convert to MP4 video
 (same step we just done)
 
-[Convert ROSBags to MP4 Video](Workspace/README.md#convert-rosbags-to-mp4-video)
+[Convert ROSBags to MP4 Video](https://github.com/LesterLiou/Deep_learning_d415_ROS2/tree/main/README.md#convert-rosbags-to-mp4-video)
 
 
 ### 2. Upload the MP4 to Colab

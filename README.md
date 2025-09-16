@@ -53,6 +53,8 @@ chmod +x run_cpu.sh
 ./run_cpu.sh
 ```
 
+
+
 ### 4. Build ROS 2 Workspace
 
 Inside the Docker container:
@@ -191,4 +193,4 @@ python3 bag2mp4.py
 ```
 # Keep Going for Detection
 
-## [Detection](Workspace/Tutorial/maskrcnn.md)
+## [Detection](https://github.com/LesterLiou/Deep_learning_d415_ROS2/blob/main/Tutorial/maskrcnn.md)

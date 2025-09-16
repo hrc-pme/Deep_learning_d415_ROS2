@@ -1,0 +1,42 @@
+# If you have any Docker Question
+We will write down some common question you will face here. Feel free to ask for any question.
+
+# Wrong PyTorch (GPU Version)
+
+> **Note**: Check out your cuda version if you are using GPU image.In this image the default `pytorch` will be for `CUDA12.4`
+
+## 1. ) Change Temporary
+If you are already in the container, you will only can change temporary,
+It will be reset if you restart the container.
+
+```bash
+# uninstall the default version
+pip uninstall torch torchvision torchaudio -y
+
+# check out your version 
+nvidia-smi
+```
+#### download your version from pytorch website
+https://pytorch.org/get-started/locally/
+
+## 2. ) Change Permanent
+You will need to change the dockerfile by yourself, and rebuild it.
+Find the file at `~/Docker/GPU/Dockerfile.gpu`
+```Dockerfile
+# ===================================================================
+# Python pkg（with PyTorch CUDA 12.4 ）
+# ===================================================================
+RUN pip install --upgrade pip && \
+    pip install numpy==1.26.4 matplotlib==3.8.* scipy pandas \
+    opencv-python opencv-python-headless \
+    scikit-learn scikit-image Pillow \
+    pyserial pexpect future pyquaternion pyyaml \
+    tensorflow tensorboard && \
+    pip install --no-cache-dir --ignore-installed \
+      torch torchvision torchaudio \
+      --index-url https://download.pytorch.org/whl/cu124     # you will need to change this line
+```
+```bash
+cd ~/Docker/GPU
+./build.sh
+```
