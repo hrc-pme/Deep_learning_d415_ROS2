@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# DOCKERHUB_USER=---- ./build_gpu.sh humble-cuda12.4
+# DOCKERHUB_USER=hrcnthu ./build_gpu.sh humble-cuda12.8
 
 set -euo pipefail
 
@@ -20,7 +20,7 @@ echo "✅ Local build complete: ${IMAGE_NAME}:${LOCAL_TAG}"
 # 2) Prepare local publish-style tags (no push)
 PUBLISH_USER="${DOCKERHUB_USER:-your_dockerhub_name}"
 PUBLISH_REPO="${PUBLISH_USER}/dl_lab_cuda"
-PUBLISH_TAG="${1:-humble-cuda12.4}"
+PUBLISH_TAG="${1:-humble-cuda12.8}"
 
 echo ">>> Creating local tags (no push):"
 echo "    - ${PUBLISH_REPO}:${PUBLISH_TAG}"
