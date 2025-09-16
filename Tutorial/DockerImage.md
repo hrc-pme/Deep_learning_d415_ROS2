@@ -8,7 +8,12 @@ We will write down some common question you will face here. Feel free to ask for
 There are two existing version CUDA12.4 and CUDA12.8
 You can change in `run_gpu.sh` 
 ```bash
+...
+CONTAINER_NAME="DL_lab_cuda"
+HUB_USER="hrcnthu"                 
+REPO_NAME="dl_lab_cuda"
 TAG="${1:-humble-cuda12.4}"       # humble-cuda12.4 | humble-cuda12.8
+...
 ```
 
 ## 1. ) Change Temporary
