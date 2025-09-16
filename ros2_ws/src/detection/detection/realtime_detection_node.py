@@ -23,7 +23,7 @@ class RealTimeInferenceNode(Node):
     def __init__(self):
         super().__init__('realtime_detection_node')
 
-        # ---- ROS 參數 ----
+        # ---- ROS parameters ----
         self.declare_parameter('in_image_topic', '/camera/camera/color/image_raw/compressed')
         self.declare_parameter('out_image_topic', '/camera/color/image_detection/compressed')
         self.declare_parameter('score_thresh', 0.8)
@@ -36,7 +36,7 @@ class RealTimeInferenceNode(Node):
         period    = float(self.get_parameter('timer_period').get_parameter_value().double_value)
         device_req = self.get_parameter('device').get_parameter_value().string_value
 
-        # ---- Detectron2 設定 ----
+        # ---- Detectron2 config  ----
         self.declare_parameter('task', 'instance')  # bbox | instance | keypoint | panoptic
         task = self.get_parameter('task').get_parameter_value().string_value
 
@@ -53,7 +53,7 @@ class RealTimeInferenceNode(Node):
         self.cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = score_thr
         self.cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url(cfg_name)
 
-        # ---- 選擇運算裝置（cpu/cuda/auto）----
+        # ---- Select compute device (cpu/cuda/auto) ----
         if device_req not in ("cpu", "cuda", "auto"):
             self.get_logger().warn(f'Unknown device: "{device_req}", fallback to "auto"')
             device_req = "auto"
@@ -68,7 +68,8 @@ class RealTimeInferenceNode(Node):
         else:  # auto
             device_sel = "cuda" if torch.cuda.is_available() else "cpu"
         self.cfg.MODEL.DEVICE = device_sel
-        # 友善列印目前裝置
+
+        # print of current device
         if device_sel == "cuda":
             try:
                 name = torch.cuda.get_device_name(0)
@@ -81,7 +82,7 @@ class RealTimeInferenceNode(Node):
         self.task = task
         self.predictor = DefaultPredictor(self.cfg)
 
-        # ---- ROS 通訊 ----
+        # ---- ROS comms ----
         self.bridge = CvBridge()
         self.current_image = None
         self.last_header = None
@@ -132,7 +133,7 @@ class RealTimeInferenceNode(Node):
         try:
             # 1) CompressedImage（Foxglove/RViz2 Camera display）
             cmsg = CompressedImage()
-            cmsg.header.stamp = self.last_header.stamp   # 與輸入對齊，同步更穩
+            cmsg.header.stamp = self.last_header.stamp  
             cmsg.header.frame_id = self.last_header.frame_id
             cmsg.format = 'jpeg'
             cbytes = cv2.imencode('.jpg', annotated)[1]
@@ -158,7 +159,7 @@ class RealTimeInferenceNode(Node):
 
         if self.task in ['bbox', 'instance', 'keypoint']:
             instances = outputs["instances"].to("cpu")
-            # bbox 模式：只畫框與標籤，不畫遮罩
+            # bbox mode: draw boxes + labels only, no masks
             if self.task == 'bbox' and instances.has("pred_masks"):
                 instances.remove("pred_masks")
             v = v.draw_instance_predictions(instances)

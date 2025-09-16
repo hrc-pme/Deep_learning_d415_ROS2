@@ -8,7 +8,7 @@ from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
-    # 預設參數檔路徑（假設放在 detection/config/realtime_detection.yaml）
+    # Default parameter file path
     default_param_path = os.path.join(
         get_package_share_directory('detection'),
         'config',
@@ -19,7 +19,7 @@ def generate_launch_description():
     device_arg = LaunchConfiguration('device') 
 
     return LaunchDescription([
-        # 允許用戶以 param_file:=... 指定自訂 YAML
+        # Allow overriding the YAML via param_file:=...
         DeclareLaunchArgument(
             'param_file',
             default_value=TextSubstitution(text=default_param_path),
@@ -32,12 +32,17 @@ def generate_launch_description():
             description='cpu | cuda | auto'
         ),
 
+        DeclareLaunchArgument(
+            'task',
+            default_value=TextSubstitution(text='instance'),
+            description='bbox | instance | keypoint | panoptic'
+        ),
+
         Node(
             package='detection',
             executable='realtime_detection_node',
             name='realtime_detection_node',
             output='screen',
-            # 直接把 YAML 路徑丟進 parameters
-            parameters=[param_file, {'device': device_arg}] 
+            parameters=[param_file, {'device': device_arg, 'task': task_arg}]
         )
     ])
