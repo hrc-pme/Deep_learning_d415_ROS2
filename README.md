@@ -60,6 +60,7 @@ chmod +x run_cpu.sh
 Inside the Docker container:
 
 ```bash
+cd  ~/Workspace/ros2_ws
 colcon build --symlink-install
 # Or simply use `cb` instead of typing the full command.
 ```

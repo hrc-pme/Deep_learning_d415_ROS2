@@ -3,7 +3,7 @@ set -euo pipefail
 
 CONTAINER_NAME="DL_lab_cpu"
 IMAGE_NAME="dl_lab_cpu"
-TAG="${1:-u$(id -u)-g$(id -g)}"   # 預設用當前使用者的 uid/gid tag
+TAG="${1:-u$(id -u)-g$(id -g)}"   
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 echo ">>> Running CPU container: ${CONTAINER_NAME} from image: ${IMAGE_NAME}:${TAG}"

@@ -162,7 +162,7 @@ RUN printf '%s\n' \
   echo 'source /opt/ros/${ROS_DISTRO}/setup.bash' >> /etc/bash.bashrc && \
   { \
     # Convenient alias for building (with correct --log-base placed before subcommand)
-    echo 'alias cb="( cd \"$HOME/Workspace/ros2_ws\" && colcon --log-base $HOME/.colcon/log build --merge-install --symlink-install && source install/setup.bash )"'; \
+    echo 'alias cb="( cd \"$HOME/Workspace/ros2_ws\" && colcon --log-base $HOME/.colcon/log build --symlink-install && source install/setup.bash )"'; \
     # Set a fixed location for colcon logs
     echo 'mkdir -p $HOME/.colcon/log'; \
     echo 'export COLCON_LOG_PATH=$HOME/.colcon/log'; \
