@@ -53,7 +53,7 @@ chmod +x run_cpu.sh
 ./run_cpu.sh
 ```
 
-
+> **NOTE: Check out your CUDA & PyTorch version [DOCKERIMAGE](https://github.com/LesterLiou/Deep_learning_d415_ROS2/blob/main/Tutorial/DockerImage.md#wrong-pytorch-gpu-version)
 
 ### 4. Build ROS 2 Workspace
 
