@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# DOCKERHUB_USER=hrcnthu ./build_gpu.sh humble-cuda12.8
+# ./build_gpu.sh humble-cuda12.8
 
 set -euo pipefail
 

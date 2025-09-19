@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# DOCKERHUB_USER=hrcnthu ./build_cpu.sh humble-cpu
+# ./build_cpu.sh humble-cpu
 
 set -euo pipefail
 

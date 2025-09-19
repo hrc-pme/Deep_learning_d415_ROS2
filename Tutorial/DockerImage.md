@@ -10,9 +10,11 @@ You can change in `run_gpu.sh`
 ```bash
 ...
 CONTAINER_NAME="DL_lab_cuda"
-HUB_USER="hrcnthu"                 
+HUB_USER="hrcnthu"
 REPO_NAME="dl_lab_cuda"
-TAG="${1:-humble-cuda12.4}"       # humble-cuda12.4 | humble-cuda12.8
+AS_ROOT=0
+TAG_DEFAULT="humble-cuda12.4"       # humble-cuda12.4 | humble-cuda12.8 
+TAG="${TAG_DEFAULT}"
 ...
 ```
 
@@ -30,7 +32,7 @@ nvidia-smi
 #### download your version from pytorch website
 https://pytorch.org/get-started/locally/
 
-## 2. ) Change Permanent
+## 2. ) Change Permanent (Recommend)
 You will need to change the dockerfile by yourself, and rebuild it.
 Find the file at `~/Docker/GPU/Dockerfile.gpu`
 ```Dockerfile
@@ -45,9 +47,28 @@ RUN pip install --upgrade pip && \
     tensorflow tensorboard && \
     pip install --no-cache-dir --ignore-installed \
       torch torchvision torchaudio \
-      --index-url https://download.pytorch.org/whl/cu124     # you will need to change this line
+      --index-url https://download.pytorch.org/whl/cu124     # you will only need to change this line
 ```
+Build your own Image (it will take a while).
 ```bash
 cd ~/Docker/GPU
-./build.sh
+./build_gpu.sh humble-cuda12.6    # fill in your version e.g. humble-cuda12.6
 ```
+Rewrite your `run_gpu.sh` 
+```bash
+# -------------------------------
+# Config
+# -------------------------------
+CONTAINER_NAME="DL_lab_cuda"
+HUB_USER="hrcnthu"                  # delete this line
+REPO_NAME="dl_lab_cuda"
+AS_ROOT=0
+TAG_DEFAULT="humble-cuda12.4"       # humble-cuda{yourversion} 
+TAG="${TAG_DEFAULT}"
+```
+Open your container
+```bash
+./run_gpu.sh
+```
+
+

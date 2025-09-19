@@ -23,18 +23,30 @@ git clone --recursive git@github.com:hrc-pme/Deep_learning_d415_ROS2.git
 ### 2. Update Repository and Submodules
 
 ```bash
-cd ~/Deep_Learning_D415_ROS2
+cd ~/Deep_Learning_d415_ROS2
 git pull
 git submodule sync --recursive
 git submodule update --init --recursive
 ```
 
-### 3. Start Docker Container
+### 3. Open /dev/Video for hrc
+You will need to give access to hrc (the user in container).
+
+```
+sudo ./open_video_hrc.sh
+```
+
+
+## Start Docker Container
 
 Choose the appropriate Docker setup based on your hardware:
 - Use GPU version if you have a compatible graphics card
 - Use CPU version for systems without GPU
 
+### 1. GPU Version
+ Before starting with GPU container check out your CUDA version first.
+
+The default CUDA version will be 12.4.
 
 ```bash
 # For GPU systems:
@@ -43,27 +55,30 @@ nvidia-smi
 ```
 > If you want to change your CUDA version Check on this repo. **[CUDA Version](https://github.com/hrc-pme/Deep_learning_d415_ROS2/blob/main/Tutorial/DockerImage.md#wrong-pytorch-gpu-version)**
 
+If you have the correct version, you can open the container.
+
 ```bash
-cd ~/Deep_Learning_D415_ROS2
-chmod +x run_gpu.sh 
-./run_gpu.sh      # default CUDA version 12.4
+cd ~/Deep_Learning_d415_ROS2
+chmod +x run_gpu.sh           # give the permission (you will only do one time)
+./run_gpu.sh                  # default CUDA version 12.4
 ```
 
-#### If you are using VMware or any virtual machine, you can use CPU version.
+### 2. CPU Version
+If you are using VMware or any virtual machine, you only can use CPU version.
 ```bash
 # For CPU systems:
-cd ~/Deep_Learning_D415_ROS2
-chmod +x run_cpu.sh 
+cd ~/Deep_Learning_d415_ROS2
+chmod +x run_cpu.sh           # give the permission (you will only do one time)
 ./run_cpu.sh
 ```
-In both container 
+### In both container the user ID will be 
 ```
 user: hrc 
 passward: 111111
 ```
 
 
-### 4. Build ROS 2 Workspace
+## Build ROS 2 Workspace
 
 Inside the Docker container:
 
@@ -75,9 +90,9 @@ colcon build --symlink-install
 > **Note**: The alias `cb` had been defined as
 `alias cb='colcon build --symlink-install`
 
-### 5. RealSense D415 Camera Setup
+## RealSense D415 Camera Setup
 
-#### 5.1 Find Camera Serial Number
+### 1. Find Camera Serial Number
 ```bash
 rs-enumerate-devices -s
 ```
@@ -87,10 +102,10 @@ Device Name                   Serial Number       Firmware Version
 Intel RealSense D415          241222061237        5.16.0.1
 ```
 
-#### 5.2 Configure Camera Serial Number
+### 2. Configure Camera Serial Number
 1. Open the launch file:
    ```
-   ~/Deep_Learning_D415_ROS2/ros2_ws/src/realsense-ros/realsense2_camera/launch/rs_launch.py
+   ~/Deep_Learning_d415_ROS2/ros2_ws/src/realsense-ros/realsense2_camera/launch/rs_launch.py
    ```
 2. Update the serial number:
    ```python
@@ -101,18 +116,21 @@ Intel RealSense D415          241222061237        5.16.0.1
    cb
    ```
 
-#### 5.3 Launch Camera
+### 3. Launch Camera
 
 In Terminal 1:
 ```bash
 ros2 launch realsense2_camera rs_launch.py
 ```
 
-#### 5.4 Visualize Camera Feed
+### 4. Visualize Camera Feed
 Turn on the Rviz2 to visualize the image.
 
 In Terminal 2:
 ```bash
+cd ~/Deep_Learning_d415_ROS2
+./run_[your_version].sh       #./run_gpu.sh OR ./run_cpu.sh 
+
 rviz2
 ```
 OR you can open rosbridge visualize in foxglove
@@ -125,7 +143,7 @@ Then in RViz2:
 1. Click "Add"
 2. Navigate to: By topic → /camera → /camera → /color → /image_raw → /Image
 
-#### 5.5 Verify Camera Topics
+### 5. Verify Camera Topics
 
 Check if camera topics are being published:
 ```bash
