@@ -2,27 +2,13 @@
 set -euo pipefail
 
 # -------------------------------
-# Config
+# Config (hrc-only)
 # -------------------------------
 CONTAINER_NAME="DL_lab_cuda"
 HUB_USER="hrcnthu"
 REPO_NAME="dl_lab_cuda"
-AS_ROOT=0
 TAG_DEFAULT="humble-cuda12.4"       # humble-cuda12.4 | humble-cuda12.8 
-TAG="${TAG_DEFAULT}"
-
-# Parse args
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    -r) AS_ROOT=1; shift ;;
-    -h|--help)
-      echo "Usage: $0 [-r] [TAG]"
-      echo "  -r      join/exec as root (default: hrc)"
-      echo "  TAG     image tag (default: ${TAG_DEFAULT})"
-      exit 0 ;;
-    *) TAG="$1"; shift; break ;;
-  esac
-done
+TAG="${1:-$TAG_DEFAULT}"
 
 IMAGE="${HUB_USER}/${REPO_NAME}:${TAG}"
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -34,26 +20,22 @@ is_running() {
   docker ps --filter "name=^/${CONTAINER_NAME}$" --format '{{.Names}}' | grep -qx "${CONTAINER_NAME}"
 }
 
-join_as_user() {
-  local user_flag home_var shell_in="bash"
-  if [[ "${AS_ROOT}" -eq 1 ]]; then
-    user_flag=(--user 0:0); home_var="/root"
-  else
-    user_flag=(--user hrc);  home_var="/home/hrc"
-  fi
-  # fallback if bash is unavailable
+join_as_hrc() {
+  local HOME_VAR="/home/hrc"
+  local SHELL_IN="bash"
   if ! docker exec "${CONTAINER_NAME}" which bash >/dev/null 2>&1; then
-    shell_in="sh"
+    SHELL_IN="sh"
   fi
   docker exec -it \
-    -e HOME="${home_var}" -w "${home_var}" \
-    "${user_flag[@]}" \
-    "${CONTAINER_NAME}" "${shell_in}" -l
+    --user hrc \
+    -e HOME="${HOME_VAR}" -w "${HOME_VAR}" \
+    "${CONTAINER_NAME}" "${SHELL_IN}" -l
 }
 
 start_container() {
   echo ">>> Running container: ${CONTAINER_NAME} from image: ${IMAGE}"
-  xhost +local:root 1>/dev/null 2>&1 || true
+  # Allow local X11 clients (not just root)
+  xhost +local: 1>/dev/null 2>&1 || true
   mkdir -p /tmp/runtime-hrc
 
   if ! docker image inspect "${IMAGE}" >/dev/null 2>&1; then
@@ -67,6 +49,8 @@ start_container() {
     --ipc=host \
     --privileged \
     --device=/dev/bus/usb:/dev/bus/usb \
+    --user hrc \
+    -e HOME="/home/hrc" \
     -e LOCAL_UID="$(id -u)" \
     -e LOCAL_GID="$(id -g)" \
     -e DISPLAY="$DISPLAY" \
@@ -84,10 +68,10 @@ start_container() {
 }
 
 # -------------------------------
-# Main logic: run-or-join
+# Main: run-or-join (hrc-only)
 # -------------------------------
 if is_running; then
-  join_as_user
+  join_as_hrc
 else
   start_container
 fi

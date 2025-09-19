@@ -29,8 +29,11 @@ git submodule sync --recursive
 git submodule update --init --recursive
 ```
 
-### 3. Open /dev/Video for hrc
-You will need to give access to hrc (the user in container).
+### 3. Copy the usb rule to machine
+```bash
+cd ~/Deep_learning_d415
+sudo cp .99-realsense-libusb.rules /etc/udev/rules.d/99-realsense-libusb.rules
+```
 
 ```
 sudo ./open_video_hrc.sh

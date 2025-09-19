@@ -13,15 +13,20 @@ is_running() {
 }
 
 join_as_hrc() {
+  local SHELL_IN="bash"
+  if ! docker exec "${CONTAINER_NAME}" which bash >/dev/null 2>&1; then
+    SHELL_IN="sh"
+  fi
   docker exec -it \
     --user hrc \
     -e HOME="/home/hrc" -w "/home/hrc" \
-    "${CONTAINER_NAME}" bash -l
+    "${CONTAINER_NAME}" "${SHELL_IN}" -l
 }
 
 start_container() {
   echo ">>> Running container: ${CONTAINER_NAME} from image: ${IMAGE}"
-  xhost +local:root 1>/dev/null 2>&1 || true
+  # Allow local X11 clients (all local users, not just root)
+  xhost +local: 1>/dev/null 2>&1 || true
   mkdir -p /tmp/runtime-hrc
 
   if ! docker image inspect "${IMAGE}" >/dev/null 2>&1; then
@@ -34,6 +39,8 @@ start_container() {
     --ipc=host \
     --privileged \
     --device=/dev/bus/usb:/dev/bus/usb \
+    --user hrc \
+    -e HOME="/home/hrc" \
     -e LOCAL_UID="$(id -u)" \
     -e LOCAL_GID="$(id -g)" \
     -e DISPLAY="$DISPLAY" \
