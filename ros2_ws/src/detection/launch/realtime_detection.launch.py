@@ -35,7 +35,7 @@ def generate_launch_description():
 
         DeclareLaunchArgument(
             'task',
-            default_value=TextSubstitution(text='instance'),
+            default_value=TextSubstitution(text='bbox'),
             description='bbox | instance | keypoint | panoptic'
         ),
 
@@ -44,6 +44,6 @@ def generate_launch_description():
             executable='realtime_detection_node',
             name='realtime_detection_node',
             output='screen',
-            parameters=[param_file, {'device': device_arg, 'task': task_arg}]
+            parameters=[ {'device': device_arg, 'task': task_arg}, param_file]
         )
     ])

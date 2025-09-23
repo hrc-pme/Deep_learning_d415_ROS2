@@ -11,7 +11,7 @@ realtime_detection_node:
     timer_period: 0.01
 
     # Model
-    task: "keypoint"   # bbox | instance | keypoint | panoptic
+    task: "bbox"   # bbox | instance | keypoint | panoptic
     
     # Computation device
-    device: "auto"     # cpu | cuda | auto
+    device: "cuda"     # cpu | cuda | auto
