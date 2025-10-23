@@ -276,7 +276,7 @@ Refer to the "How to Run" section in the README file for detailed setup instruct
 - Duration: 10 seconds
 - Capture a screenshot of the rosbag information (see example below)
 
-**Reference:** [ROS Rosbag Command Line Guide](https://wiki.ros.org/rosbag/Commandline)
+**Reference:** [ROS Rosbag Command Line Guide](https://docs.ros.org/en/humble/Tutorials/Beginner-CLI-Tools/Recording-And-Playing-Back-Data/Recording-And-Playing-Back-Data.html)
 
 **Example Output:**
 ```
