@@ -21,7 +21,7 @@ The tutorial includes two main parts:
 
 ### Part A: Environment Setup
 - **A-1:** Linux/Ubuntu Dual System **(Bonus +10 points)**
-- **A-2:** Virtual Machine on Windows
+- **A-2:** WSL2 on Windows
 
 ### Part B: Camera Setup and Data Recording
 - Set up the D415 camera and record data
@@ -74,7 +74,13 @@ Installation issues may vary by computer and involve deeper system access, which
   - Ubuntu 22.04 recommended (especially for Intel 13th/14th gen CPUs)
   - Any Ubuntu version is acceptable
 - NVIDIA GPU (GTX or RTX series)
-  - If you don't have an NVIDIA GPU, use **Part A-2: Virtual Machine**
+  - If you don't have an NVIDIA GPU, use **Part A-2: WSL2**
+
+**Pre-Installation Checklist:**
+- BitLocker is disabled (if applicable)
+- Wi-Fi card compatibility verified
+- BIOS settings configured
+- At least 128GB free space for Ubuntu (⅓ of storage recommended)
 
 
 
@@ -183,75 +189,251 @@ ssh -T git@github.com
 
 ---
 
+### Next Steps
 
-## Part A-2: Virtual Machine for Windows Users
+For Part B tutorial (D415 camera setup), check:
+- 🔗 [Deep Learning D415 ROS2 Repository](https://github.com/hrc-pme/Deep_learning_d415_ROS2)
 
-This section is for students who cannot install a dual-boot system or don't have an NVIDIA GPU.
+---
+
+## Part A-2: WSL2 on Windows
+
+If you do not have enough storage space for a dual-boot system, you can use **WSL 2 (Windows Subsystem for Linux)** on Windows. This section will guide you through installing WSL 2, Ubuntu, Docker Desktop, and configuring them so that the ROS 2 camera environment can run successfully.
+
+---
 
 ### Prerequisites
 
-- Connected to **NTHU network** (Wi-Fi is sufficient)
+- Windows 10 version 2004 or higher, or Windows 11
 - At least **50GB** of free disk space
+- Administrator access to your Windows system
 
 ---
 
-### Step 1: Download FileZilla Client
+### Step 1: Install WSL 2
 
-Download from: [FileZilla Official Site](https://filezilla-project.org/download.php?platform=win64)
+#### 1.1 Open PowerShell as Administrator
 
----
+Right-click on the Start button and select **Windows PowerShell (Admin)** or **Terminal (Admin)**
 
-### Step 2: Connect to FTP Server
+#### 1.2 Install WSL and Ubuntu
 
-Use the following credentials in FileZilla:
+Run the following command:
 
-| Field | Value |
-|-------|-------|
-| **Host** | `140.114.58.210` |
-| **Username** | `Deeplearning` |
-| **Password** | `111111` |
-| **Port** | *Leave blank* |
+```powershell
+wsl --install
+```
 
-Then press **Quickconnect**
+This will:
+- Enable WSL feature
+- Install the default Ubuntu distribution
+- Set WSL 2 as the default version
 
----
+#### 1.3 Verify WSL Version
 
-### Step 3: Download the Virtual Machine
+```powershell
+wsl --version
+```
 
-1. Navigate to **D415_VM** folder (double left-click)
-2. Right-click on `deep_learning...zip`
-3. Choose **Download**
+Make sure your version is **at least 2.0**
 
-💡 **Tip:** Make sure to select the correct local folder to save the .zip file
+#### 1.4 Restart Your Computer
 
----
-
-### Step 4: Extract the ZIP File
-
-After extraction, the folder should contain all necessary files.
+When prompted, restart your computer to complete the installation.
 
 ---
 
-### Step 5: Install VMware Workstation Pro 17.6.1
+### Step 2: Install Ubuntu for WSL
 
-Download from: [VMware Workstation Pro (Free for Personal Use)](https://blogs.vmware.com/workstation/2024/05/vmware-workstation-pro-now-available-free-for-personal-use.html)
+#### 2.1 Install Ubuntu from Microsoft Store
 
-💡 **Alternative:** If you can't download the exe, get it from the FTP server
+1. Open the **Microsoft Store**
+2. Search for **Ubuntu 22.04 LTS** (or just "Ubuntu")
+3. Click **Install**
 
-**Installation:**
-- Choose **For Personal Use** during installation
+
+
+#### 2.2 Launch Ubuntu
+
+**Option 1:** Open from Start Menu
+
+**Option 2:** From PowerShell, type:
+```powershell
+ubuntu
+```
+
+#### 2.3 Initial Setup
+
+When Ubuntu launches for the first time:
+1. Create a **username** (e.g., `deeplearning`)
+2. Create a **password**
+
+> ⚠️ **Note:** The password will not be visible as you type (this is normal for Linux)
+
+#### 2.4 Update the System
+
+```bash
+sudo apt update && sudo apt upgrade -y
+```
+
+#### 2.5 Opening WSL in the Future
+
+**Method 1:** Type `Ubuntu` in Windows search bar
+
+**Method 2:** Open PowerShell and type:
+```powershell
+ubuntu
+```
+
+#### 2.6 Verify Installation
+
+Your terminal should look like a standard Ubuntu shell:
+
+```bash
+username@DESKTOP:~$
+```
+
+**Open VS Code in WSL:**
+```bash
+code .
+```
 
 ---
 
-### Step 6: Import the Virtual Machine
+### Step 3: Install Docker Desktop
 
-1. Open **VMware Workstation**
-2. Choose **Open a Virtual Machine**
-3. Locate the folder where you extracted the .zip file
-4. Name your virtual machine
-5. Press **Import**
+#### 3.1 Download Docker Desktop
 
-**Note:** The import process takes approximately 5–10 minutes
+Download from: [Docker Desktop for Windows](https://www.docker.com/products/docker-desktop/)
+
+**System Architecture:**
+- Most users should select **AMD64 (x64)**
+- To verify: Open **Device Manager** → **System Information**
+- If it shows "x64-based processor", select **AMD64**
+
+#### 3.2 Install Docker Desktop
+
+1. Run the installer
+2. Follow the installation wizard
+3. Accept the default settings
+
+> **Important:** Docker Desktop must remain open while using Docker commands
+
+#### 3.3 Configure WSL Integration
+
+1. Open **Docker Desktop**
+2. Go to **Settings** (gear icon)
+3. Navigate to **Resources** → **WSL Integration**
+4. Enable **"Enable integration with my default WSL distro"**
+5. Ensure **Ubuntu** is selected and toggled ON
+6. Click **Apply & Restart**
+
+
+#### 3.4 Verify Docker Installation
+
+Open Ubuntu terminal and run:
+
+```bash
+docker --version
+docker run hello-world
+```
+
+You should see Docker version information and a "Hello from Docker!" message.
+
+---
+
+### Step 4: Connect Camera to WSL
+
+This step allows your WSL environment to access USB devices like the Intel RealSense D415 camera.
+
+#### 4.1 Install USBIPD on Windows
+
+Open **PowerShell as Administrator** and run:
+
+```powershell
+winget install --interactive --exact dorssel.usbipd-win
+```
+
+Or download from: [USBIPD-WIN Releases](https://github.com/dorssel/usbipd-win/releases)
+
+#### 4.2 List Connected USB Devices
+
+In PowerShell (Administrator):
+
+```powershell
+usbipd list
+```
+
+Find your camera in the list and note its **BUSID** (e.g., `1-25`)
+
+**Example Output:**
+```
+BUSID  VID:PID    DEVICE                                            STATE
+1-25   8086:0b07  Intel(R) RealSense(TM) Depth Camera 415           Not attached
+```
+
+#### 4.3 Bind the Camera
+
+Replace `1-25` with your actual BUSID:
+
+```powershell
+usbipd bind --busid 1-25
+```
+
+Verify the device is now **Shared**:
+
+```powershell
+usbipd list
+```
+
+**Expected Output:**
+```
+BUSID  VID:PID    DEVICE                                            STATE
+1-25   8086:0b07  Intel(R) RealSense(TM) Depth Camera 415           Shared
+```
+
+#### 4.4 Attach Camera to WSL
+
+```powershell
+usbipd attach --wsl --busid 1-25 --auto-attach
+```
+
+> 💡 **Tip:** The `--auto-attach` flag will automatically reconnect the camera to WSL after reboots
+
+#### 4.5 Verify Camera in WSL
+
+Open Ubuntu terminal and run:
+
+```bash
+lsusb
+```
+
+You should see an entry like:
+
+```
+Bus 001 Device 002: ID 8086:0b07 Intel Corp. RealSense D415
+```
+
+---
+
+### Daily Usage Tips
+
+**Every time you want to use the camera:**
+
+1. Open **Docker Desktop** (must be running)
+2. If camera is not detected in WSL, reattach it:
+   ```powershell
+   # In PowerShell (Administrator)
+   usbipd attach --wsl --busid 1-25
+   ```
+3. Open Ubuntu terminal:
+   ```powershell
+   ubuntu
+   ```
+4. Verify camera connection:
+   ```bash
+   lsusb
+   ```
 
 ---
 
@@ -259,37 +441,112 @@ Download from: [VMware Workstation Pro (Free for Personal Use)](https://blogs.vm
 
 In this section, we will turn on the D415 camera and record a bag file.
 
-Refer to the "How to Run" section in the README file for detailed setup instructions:
+### For Linux Users (Part A-1)
 
-[hrc-pme/Deep_learning_d415_ROS2](https://github.com/hrc-pme/Deep_learning_d415_ROS2)
+#### Open Terminal
+
+Press `Ctrl + Alt + T` to open terminal
+
+Or use VS Code: Press `Ctrl + ~` to open integrated terminal
 
 ---
 
-## ✅ Checkpoints & Grading
+### For WSL2 Users (Part A-2)
+
+#### 1. Ensure Camera is Connected
+
+In **PowerShell (Administrator)**:
+
+```powershell
+# Check if camera is attached
+usbipd list
+
+# If not attached, attach it
+usbipd attach --wsl --busid 1-25
+```
+
+#### 2. Open Ubuntu Terminal
+
+**Option 1:** Type `Ubuntu` in Windows search
+
+**Option 2:** In PowerShell:
+```powershell
+ubuntu
+```
+
+#### 3. Open VS Code (Optional but Recommended)
+
+```bash
+code .
+```
+
+Then press `Ctrl + ~` to open integrated terminal in VS Code
+
+#### 4. Verify Camera in WSL
+
+```bash
+lsusb
+```
+
+Make sure you see the Intel RealSense camera listed.
+
+---
+
+### Camera Setup and Data Recording
+
+Follow the **"Setup Instructions"** section in the main README:
+
+- [Deep Learning D415 ROS2 - Setup Instructions](https://github.com/hrc-pme/Deep_learning_d415_ROS2)
+
+**Quick Reference:**
+
+1. Navigate to the repository folder
+2. Launch the Docker container
+3. Start the camera node
+4. Record rosbag data
+
+---
+
+## Checkpoints & Grading
 
 ### Checkpoint 1: Record Rosbag (80 points)
 
 **Task:** Record a 10-second video using the rosbag command
 
 **Requirements:**
-- Use rosbag command to record camera data
-- Duration: 10 seconds
-- Capture a screenshot of the rosbag information (see example below)
+- Use `ros2 bag record` command to record camera data
+- Duration: **10 seconds**
+- Capture a screenshot of the rosbag information
 
-**Reference:** [ROS Rosbag Command Line Guide](https://docs.ros.org/en/humble/Tutorials/Beginner-CLI-Tools/Recording-And-Playing-Back-Data/Recording-And-Playing-Back-Data.html)
+**Reference:** [ROS 2 Rosbag Recording Guide](https://docs.ros.org/en/humble/Tutorials/Beginner-CLI-Tools/Recording-And-Playing-Back-Data/Recording-And-Playing-Back-Data.html)
+
+**Example Commands:**
+
+```bash
+# Record all topics for 10 seconds
+ros2 bag record -a --duration 10
+
+# Or record specific camera topics
+# Or there are some pkg in the repo
+```
+
+**Check Bag Info:**
+
+```bash
+ros2 bag info <bag_folder_name>
+```
 
 **Example Output:**
 ```
-path:        your_bag_file.bag
-version:     2.0
-duration:    10.0s
-start:       Jan 01 2025 00:00:00.00
-end:         Jan 01 2025 00:00:10.00
-size:        XXX.X MB
-messages:    XXXX
-compression: none [X/X chunks]
-types:       sensor_msgs/Image
-topics:      /camera/color/image_raw   XXX msgs    : sensor_msgs/Image
+Files:             your_bag_file_0.db3
+Bag size:          XXX.X MiB
+Storage id:        sqlite3
+Duration:          10.0s
+Start:             Jan 01 2025 00:00:00.00
+End:               Jan 01 2025 00:00:10.00
+Messages:          XXXX
+Topic information: 
+  Topic: /camera/color/image_raw | Type: sensor_msgs/msg/Image | Count: XXX | Serialization Format: cdr
 ```
 
 ---
@@ -300,9 +557,26 @@ topics:      /camera/color/image_raw   XXX msgs    : sensor_msgs/Image
 
 **Requirements:**
 1. Subscribe to the color image topic from the rosbag
-2. Use `rospy.loginfo` (Python) or equivalent to display:
+2. Display using ROS logging:
    - Image timestamp
    - A notice string
+
+
+---
+
+## Support & Resources
+
+### GitHub Repository
+- [Deep Learning D415 ROS2](https://github.com/hrc-pme/Deep_learning_d415_ROS2)
+
+### Additional Resources
+- [WSL 2 Installation Guide](https://learn.microsoft.com/en-us/windows/wsl/install)
+- [USBIPD-WIN Documentation](https://github.com/dorssel/usbipd-win)
+- [Docker Desktop WSL 2 Backend](https://docs.docker.com/desktop/wsl/)
+- [ROS 2 Humble Documentation](https://docs.ros.org/en/humble/)
+
+### Contact
+- Email TAs for assistance
 
 ---
 
@@ -311,9 +585,11 @@ topics:      /camera/color/image_raw   XXX msgs    : sensor_msgs/Image
 | Part | Description | Points |
 |------|-------------|--------|
 | A-1 | Linux/Ubuntu Dual System | +10 (Bonus) |
-| A-2 | Virtual Machine Setup | Required (if no GPU) |
+| A-2 | WSL2 Setup | Required (alternative to A-1) |
 | B-1 | Record Rosbag | 80 |
 | B-2 | ROS Subscriber Script | 20 |
 | **Total** | | **100 + 10 (Bonus)** |
 
 ---
+
+**Good luck!**
