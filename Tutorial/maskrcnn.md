@@ -10,7 +10,6 @@ This tutorial will guide you through setting up and running Mask R-CNN for objec
 
 ### Terminal: Start Real-time Mask R-CNN Inference
 ```
-$ cd ~/Deep_learning_d415_ROS2
 ros2 launch detection realtime_detection.launch.py
 ```
 > **NOTES**: You’ll see a prompt displaying the recommended timer duration to optimize the inference quality:

@@ -32,6 +32,9 @@ nvidia-smi
 #### download your version from pytorch website
 https://pytorch.org/get-started/locally/
 
+> **REMIND:** user: hrc  
+passward: 111111
+
 ## 2. ) Change Permanent (Recommend)
 You will need to change the dockerfile by yourself, and rebuild it.
 Find the file at `~/Docker/GPU/Dockerfile.gpu`

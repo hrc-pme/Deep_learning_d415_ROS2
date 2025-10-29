@@ -103,8 +103,10 @@ Intel RealSense D415          241222061237        5.16.0.1
 
 ### 2. Configure Camera Serial Number
 1. Open the launch file:
-   ```
-   ~/Deep_Learning_d415_ROS2/ros2_ws/src/realsense-ros/realsense2_camera/launch/rs_launch.py
+   ```bash
+   ~/home/hrc/Workspace/ros2_ws/src/realsense-ros/realsense2_camera/launch/rs_launch.py
+
+   # You can change multi setting here
    ```
 2. Update the serial number:
    ```python
