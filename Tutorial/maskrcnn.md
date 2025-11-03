@@ -99,13 +99,10 @@ You can modify the model by updating the Detectron2 configuration API call. All 
 To change the model, simply copy the desired YAML file path and replace it in the corresponding section of the code.
 Make sure to match the model type with the correct task mode:
 
- •	bbox → Detection
-
- •	instance → Instance Segmentation
-
-•	keypoint → Keypoint Detection
-
-•	panoptic → Panoptic Segmentation
+-	bbox → Detection
+- 	instance → Instance Segmentation
+-   keypoint → Keypoint Detection
+-	panoptic → Panoptic Segmentation
 
 > **REMIND:** LVIS will only be selected for instance → Instance Segmentation
 
