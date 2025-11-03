@@ -134,16 +134,18 @@ cd ~/Deep_Learning_d415_ROS2
 
 rviz2
 ```
-OR you can open rosbridge visualize in foxglove
-```bash
-ros2 launch rosbridge_server rosbridge_websocket_launch.xml
-```
-
 
 Then in RViz2:
 1. Click "Add"
 2. Navigate to: By topic → /camera → /camera → /color → /image_raw → /Image
 
+#### OR you can open rosbridge visualize in foxglove.
+
+You can download [FOXGLOVE](https://foxglove.dev/) from the website (https://foxglove.dev/), and open rosbridge to visualize the ros2 topic.
+```bash
+ros2 launch rosbridge_server rosbridge_websocket_launch.xml
+```
+> Open `FOXGLOVE` and choose rosbridge 9090 port. Click Image and the topic you want to visualize.
 ### 5. Verify Camera Topics
 
 Check if camera topics are being published:
@@ -162,6 +164,8 @@ Expected topics:
 ```
 
 ## Recording ROS Bags
+
+> **REMIND:** You need to get in the container (`./run_gpu.sh` or `./run_cpu.sh`)
 
 ### 1. Configure Recording Settings
 

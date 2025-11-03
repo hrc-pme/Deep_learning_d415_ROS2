@@ -42,7 +42,9 @@ class RealTimeInferenceNode(Node):
 
         cfg_map = {
             'bbox':     "COCO-Detection/faster_rcnn_R_50_FPN_3x.yaml",
-            'instance': "COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml",
+            'instance': "COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml", 
+            #TODO: change the model to LVIS to be compared with the previous work
+            # e.g. 'instance': "LVIS-InstanceSegmentation/mask_rcnn_R_50_FPN_1x.yaml",
             'keypoint': "COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x.yaml",
             'panoptic': "COCO-PanopticSegmentation/panoptic_fpn_R_50_3x.yaml",
         }
