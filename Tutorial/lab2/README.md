@@ -12,6 +12,7 @@ The tutorial includes two parts:
    3. **Case 2: MP4-based detection**
    4. **Change the model: compare different algorithms and different datasets**
 2. **Person Keypoint Detection**
+3. **Panoptic Segmentation**
 
 If you are using a virtual machine platform or you don't have GPU, you can follow these two steps: first, record a bag, and then play it online via Colab.
 
